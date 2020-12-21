@@ -13,8 +13,8 @@
 */
 
 /////// INCLUDES ///////
-#include <FastLED.h>
 #include "GlobalVariables.h"
+#include <FastLED.h>
 #include "LEDStripController.h"
 
 /////// CONSTANTS ///////
@@ -23,9 +23,8 @@ char incomingByte;        // variable used for data from Max.
 unsigned long lastFastLEDShowTime = 0; // time of last update of position
 //uint16_t stripShowUpdateInterval = 1000/FRAMES_PER_SECOND;   // milliseconds between updates
 
-
 // THESE STEPS SETUP THE VIRTUAL REPRESENTATION OF OUR LED STRIPS
-// CRGB Array for each strip. 
+// CRGB Array for each strip.
 CRGB aLEDs[ALEN];
 CRGB bLEDs[BLEN];
 CRGB cLEDs[CLEN];
@@ -36,7 +35,7 @@ LEDStripController BLedStripController(&(bLEDs[0]), BLEN);
 LEDStripController CLedStripController(&(cLEDs[0]), CLEN);  
 
 // Array of all controllers (to make it more efficient to update all of them at once)
-LEDStripController LedStripControllerArray[TOTAL_NUM_STRIPS] = {  
+LEDStripController LedStripControllerArray[NUM_STRIPS] = {  
                                                                   ALedStripController, 
                                                                   BLedStripController,
                                                                   CLedStripController
@@ -56,7 +55,7 @@ void setup() {
 
 
   // set master brightness control from our global variable
-  FastLED.setBrightness(bright);
+  FastLED.setBrightness(fastLEDGlobalBrightness);
 
 
 }
@@ -65,36 +64,38 @@ void setup() {
 void loop() {
 
   // TRIGGER AN ANIMATION BASED ON THE INPUT FROM MAX PATCH
-  if (Serial.available()) {         // check for incoming bytes
+  while(Serial.available()) {         // check for incoming bytes
     incomingByte = Serial.read();   // read incoming byte
-
+    
     switch (incomingByte) {
-      // turn all animations off
-      case 'b':
-        triggerLED(100);
+      // trigger ALL_OFF animation
+      case 'b':    
         triggerAnimationAllStrips(ALL_OFF);
         break;
 
-      // trigger animation 1
+      // trigger FADE_LOW animation
       case 'U':
-        triggerLED(100);
         triggerAnimationAllStrips(FADE_LOW);
         break;
+      
+      // trigger FADE_IN_OUT animation
+      case 'D':    
+        triggerAnimationAllStrips(FADE_OUT_BPM);
+        break;
 
-      // trigger animation 2
+      // trigger RAINBOW animation
       case 'H':
-        triggerLED(100);
         triggerAnimationAllStrips(RAINBOW);
         break;
 
-      // trigger animation 3
-      case 'M':
-        triggerLED(100);
+      // trigger RAINBOW_W_GLITTER animation
+      case 'C':
+        triggerAnimationAllStrips(RAINBOW_W_GLITTER);
         break;
 
-      // trigger animation 4
+      // trigger SOLID_COLOR animation
       case 'L':
-        triggerLED(100);
+        triggerAnimationAllStrips(SOLID_COLOR);
         break;
     
     }  // end of switch
@@ -102,7 +103,7 @@ void loop() {
   }
 
   // UPDATE THE STATE OF EACH STRIP CONTROLLER OBJECT
-  for(int i = 0; i < TOTAL_NUM_STRIPS; i++){
+  for(int i = 0; i < NUM_STRIPS; i++){
     LedStripControllerArray[i].Update();
   }
 
@@ -119,14 +120,22 @@ void loop() {
 }    // end of loop()
 
 
+
+
+
+
 ///// FUNCTIONS //////
 void triggerAnimationAllStrips(AnimationType animationToSet){
 
-  for(int i = 0; i < TOTAL_NUM_STRIPS; i++){
+  triggerLED(100);
+
+  for(int i = 0; i < NUM_STRIPS; i++){
     LedStripControllerArray[i].SetActiveAnimationType( animationToSet );
   }
 
 }
+
+
 
 
 // this function blinks the onboard LED. The argument sets how long is the blink.
@@ -135,111 +144,3 @@ void triggerLED(int blinkTime) {
   delay(blinkTime);                   // wait for a second
   digitalWrite(led, LOW);             // turn the LED off by making the voltage LOW
 }
-
-
-
-
-
-
-
-/*
-// Fill the dots one after the other with a color
-void colorWipe(uint32_t c, uint8_t wait) {
-  for(uint16_t i=0; i<Astrip.numPixels(); i++) {
-    Astrip.setPixelColor(i, c);
-    Astrip.show();
-    delay(wait);
-  }
-}
-
-
-void setPixel(int Pixel, byte red, byte green, byte blue) {
-   // NeoPixel
-   Astrip.setPixelColor(Pixel, Astrip.Color(red, green, blue));  //strip A,B,C
-   Bstrip.setPixelColor(Pixel, Astrip.Color(red, green, blue));  //strip A,B,C   
-   Cstrip.setPixelColor(Pixel, Astrip.Color(red, green, blue));  //strip A,B,C
-}
-
-void setAll(byte red, byte green, byte blue) {
-  for(int i = 0; i < ALEN; i++ ) {
-    setPixel(i, red, green, blue);
-  }
-  showStrip();
-}
-
-// INTEGRATE CODE BELOW:
-void FadeLow(byte red, byte green, byte blue, float FadeSteps, int FadeDelay, int LowLevel) {
-    float r, g, b;
- 
-    for(float j = FadeSteps; j >= LowLevel; j--) {
-      r = j*(red/FadeSteps);
-      g = j*(green/FadeSteps);
-      b = j*(blue/FadeSteps);
-     
-      setAll(r,g,b);
-      delay(FadeDelay);
-      }
-//      delay(FadeDelay);     
-      Astrip.show();
-      Bstrip.show(); 
-      Cstrip.show();     
-//      delay(FadeDelay);
-//      Serial.print(FadeDelay);
-//      Serial.print('\n');
-    }
-
-void FadeInOut(byte red, byte green, byte blue){
-  float r, g, b;
-     
-  for(int k = 0; k < 256; k=k+1) {
-    r = (k/256.0)*red;
-    g = (k/256.0)*green;
-    b = (k/256.0)*blue;
-    setAll(r,g,b);
-    showStrip();
-  }
-     
-  for(int k = 255; k >= 0; k=k-2) {
-    r = (k/256.0)*red;
-    g = (k/256.0)*green;
-    b = (k/256.0)*blue;
-    setAll(r,g,b);
-    showStrip();
-  }
-}
-
-void FadeOut(byte red, byte green, byte blue, int FadeSteps, int FadeDelay) {
-    float r, g, b;
- 
-    for(int j = FadeSteps; j >= 0; j--) {
-      r = j*(red/FadeSteps);
-      g = j*(green/FadeSteps);
-      b = j*(blue/FadeSteps);
-     
-      setAll(r,g,b);
-      delay(FadeDelay);
-      }
-//      delay(FadeDelay);     
-      Astrip.show();
-//      delay(FadeDelay);
-//      Serial.print(FadeDelay);
-//      Serial.print('\n');
-    }
-
-void FadeIn(byte red, byte green, byte blue, int FadeSteps, int FadeDelay) {
-    float r, g, b;
- 
-    for(int k = 0; k <= FadeSteps; k++) {
-      r = k*(red/FadeSteps);
-      g = k*(green/FadeSteps);
-      b = k*(blue/FadeSteps);
-     
-      setAll(r,g,b);
-      delay(FadeDelay);
-      }
-//      delay(FadeDelay);     
-      Astrip.show();
-//      delay(FadeDelay);
-//      Serial.print(FadeDelay);
-    }
-*/

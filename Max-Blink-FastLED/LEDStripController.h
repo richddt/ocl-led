@@ -42,21 +42,25 @@ class LEDStripController
     
     uint8_t hue = 92;
     uint8_t saturation = full_saturation;
-    uint8_t brightness = bright;
-   
-    CHSV stripColorHSV = CHSV( hue, saturation, brightness);
-
-    // INITIAL SETTING FOR COLOR OF STRIP  // new setting as of April 15th 2019
-    CRGB rgbPlaceholder = CRGB::Black; //CRGB(0, 0, 60) <-- using this will set strip to a dim blue 
+    uint8_t brightness = full_brightness;
+  
+    uint32_t beatStartTime = 0;
+    bool showStrip = true;
 
     //GENERAL UPDATE TIME INTERVALS
     unsigned long lastUpdateTime = 0; // time of last update of position
     uint16_t updateInterval = DEFAULT_UPDATE_INTERVAL;   // milliseconds between updates. Likely needs to be 5
 
+    //INITIALIZATION AND STATIC STRIP COLOR METHODS
     void InitializeAnimation();
-    void SetStripHSV(uint8_t _hue, uint8_t _saturation, uint8_t _brightness);
+    void SetStripHSV(CHSV newCHSV);
+    void SetStripHSV(CRGB newCRGB);
+    
+    //ANIMATION METHODS
     void AllOff();
     void FadeLow();
+    void FadeInOut();
+    void FadeOutBPM();
     void Rainbow();
     void RainbowWithGlitter();
     void AddGlitter( fract8 chanceOfGlitter);

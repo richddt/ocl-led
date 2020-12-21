@@ -9,12 +9,11 @@
   // ******************************************************************************************
   //    SHARED GLOBAL CONSTAND VARIABLES
   // ******************************************************************************************
-  const int bright = 255;     //set between 0 (off) to 255
-  const int full_saturation = 255;     //set between 0 (off) to 255
-  const int white_color = 255;     //set between 0 (off) to 255
-
-  #define TOTAL_NUM_STRIPS 3
-
+  const int fastLEDGlobalBrightness = 255;     //set between 0 (off) to 255
+  const int full_brightness = 255;
+  const int full_saturation = 255;
+  const int white_color = 255;   
+  const uint16_t GLOBAL_BPM = 85;
 
   // ******************************************************************************************
   //    HARDWARE DEFINITION SELECT - selects hardware definitions below
@@ -31,6 +30,8 @@
 
     const int led = 13;      //pin number for onboard LED
   
+    const int NUM_STRIPS = 3;
+
     const int APIN = 18;     //pin number for StationA LED strip
     const int ALEN = 125;    //pixel count for StationA LED strip
     
@@ -44,6 +45,8 @@
   #elif defined(__TK_TESTING__) //|| defined(__TK_TESTING_2__)
     
     const int led = LED_BUILTIN;
+
+    const int NUM_STRIPS = 3;
 
     const int APIN = 3;     //pin number for StationA LED strip
     const int BPIN = 4;     //pin number for StationB LED strip
@@ -65,17 +68,18 @@
     FADE_IN,
     FADE_OUT,
     FADE_IN_OUT,
+    FADE_OUT_BPM,
     RAINBOW,
+    RAINBOW_W_GLITTER,
+    SOLID_COLOR,
     NONE
   };
 
   #define DEFAULT_UPDATE_INTERVAL 10
-
+  
   #define ALL_OFF_UPDATE_INTERVAL 10
-  #define FADE_LOW_UPDATE_INTERVAL 10
-  #define FADE_IN_UPDATE_INTERVAL 10
-  #define FADE_OUT_UPDATE_INTERVAL 10
-  #define FADE_IN_OUT_UPDATE_INTERVAL 10
+  #define FADE_UPDATE_INTERVAL 10
+  #define RAINBOW_UPDATE_INTERVAL 10
 
 
   // ******************************************************************************************
