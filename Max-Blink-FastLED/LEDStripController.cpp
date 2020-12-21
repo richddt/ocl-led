@@ -1,21 +1,17 @@
 /*
   LEDStripController.cpp   - Class that provides specific controlls of a defined LED Strip using the FastLED Library
-                                Originally intended to play nice with MIDI controllers
-  Created by Turner E. Kirk, January 20, 2019.
-  Released into the public domain.
 */
 
 
 // ******************************************************************
-//            Includes
+//      INCLUDES
 // ******************************************************************
-
 #include "LEDStripController.h"
 
 
-// *****************************************************************************************************
+// *********************************************************************************
 //      CONSTRUCTOR
-// *****************************************************************************************************
+// *********************************************************************************
 
 LEDStripController::LEDStripController(CRGB *leds, uint16_t _numPixelsInStrip){
   ledStrip = leds;
@@ -27,9 +23,9 @@ LEDStripController::LEDStripController(CRGB *leds, uint16_t _numPixelsInStrip){
 }
 
 
-// *****************************************************************************************************
+// *********************************************************************************
 //      MAIN UPDATE FUNCTION
-// *****************************************************************************************************
+// *********************************************************************************
 
 void LEDStripController::Update() {
 
@@ -55,8 +51,16 @@ void LEDStripController::Update() {
       case RAINBOW_W_GLITTER:
         RainbowWithGlitter();
         break;
+      case CONFETTI:
+        Confetti();
+        break;
+      case SINELON:
+        Sinelon();
+        break;
       case SOLID_COLOR:
-        // don't do anything because we set the color in the Initialization funciton
+        // don't need to do anything for this one 
+        // because we set the color in the Initialization funciton
+        // and it isn't actually an animation
         break;
       case NONE:
         break;
@@ -71,10 +75,11 @@ void LEDStripController::Update() {
 }
 
 
-
-// ******************** ANIMATION TRIGGERING AND INITIALIZATION METHODS ******************************
-//      THIS IS WHERE WE GET AND SET OUR ANIMATION STATES
-// ***************************************************************************************************
+// *********************************************************************************
+//      ANIMATION TRIGGERING AND INITIALIZATION METHODS
+//        This is how the external world tells our class to trigger an animation
+//        Upon being triggered, the animation first sets its initial state
+// *********************************************************************************
 
 AnimationType LEDStripController::GetActiveAnimationType(){
      return activeAnimationType;
@@ -100,9 +105,12 @@ void LEDStripController::InitializeAnimation() {
       updateInterval = ALL_OFF_UPDATE_INTERVAL;
       break;
     case FADE_LOW:
+      updateInterval = FADE_UPDATE_INTERVAL;
+      break;
     case FADE_IN:
     case FADE_OUT:
     case FADE_IN_OUT:
+      updateInterval = FADE_UPDATE_INTERVAL;
       break;
     case FADE_OUT_BPM:  
       SetStripHSV(CHSV( hue, saturation, brightness));
@@ -112,8 +120,18 @@ void LEDStripController::InitializeAnimation() {
       break;
     case RAINBOW:
     case RAINBOW_W_GLITTER:
+      hue = 0;
       updateInterval = RAINBOW_UPDATE_INTERVAL;
       break;
+    case CONFETTI:
+      hue = 0;
+      updateInterval = DEFAULT_UPDATE_INTERVAL;
+      break;
+    case SINELON:  
+      hue = 0;
+      beatStartTime = millis();
+      updateInterval = DEFAULT_UPDATE_INTERVAL;
+      break;      
     case SOLID_COLOR:
       SetStripHSV(CHSV( random8(), saturation, brightness));
       break;      
@@ -128,6 +146,10 @@ void LEDStripController::InitializeAnimation() {
 }
 
 
+
+// *********************************************************************************
+//      BASIC FUNCTIONS FOR SETTING THE STRIP TO A SOLID COLOR
+// *********************************************************************************
 // set strip to color based on CHSV input
 void LEDStripController::SetStripHSV(CHSV newCHSV) {
 
@@ -144,21 +166,25 @@ void LEDStripController::SetStripHSV(CRGB newCRGB) {
 
 
 
-// ************************** ANIMATION METHODS ************************************
-//  THIS IS THE FUN PART WHERE WE ACTUALLY WRITE THE ANIMATIONS THAT WILL RUN
 // *********************************************************************************
+//      ANIMATION METHODS
+//        This is where we write the logic for how our animations function
+//        These functions will be called once per call to the Update method
+// *********************************************************************************
+
+// quickly turn off the strip
 void LEDStripController::AllOff() {
   fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 80);
 }
 
-
+// more slowly fade the strip to black
 void LEDStripController::FadeLow() {
   fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 10);
 }
 
 
-// this function fades out brightness from full brightness to off
-// synchronized to one full beat at the speed of the global BPM
+// this function fades out brightness similar to the "FadeLow()" function
+// except this one does so over the course of one full beat at the speed of the global BPM
 void LEDStripController::FadeOutBPM() {
 
 // the beatsin8 function creates a sine wave at the given BPM
@@ -178,25 +204,30 @@ void LEDStripController::FadeOutBPM() {
                     )	
 */
 
-  uint8_t _brightness = beatsin8( GLOBAL_BPM / 2 , 0, full_brightness, beatStartTime, 90);
-  
-  // since we only want to trigger this animation as a one shot, we need to disable it once the brightnes drops below a certain threshold
-  if(_brightness <= 5){
-    showStrip = false;
-    AllOff();
-  }
   if(showStrip){
+    // we divide the global BPM by 2 because we are only using half of the sine wave (from 255 to 0)
+    uint8_t _brightness = beatsin8( GLOBAL_BPM / 2 , 0, full_brightness, beatStartTime, 90);
+  
     SetStripHSV(CHSV( hue, saturation, _brightness));
+
+    // since we only want to trigger this animation as a one shot, 
+    // we need to disable the animation once the brightnes drops below a certain threshold
+    // as well as set the brightnes to 0 (or whatever value we want to stop it at)
+    if(_brightness <= 5){
+      SetStripHSV(CHSV( hue, saturation, 0));
+      showStrip = false;      
+    }
+  
   }
 
 }
 
 
 
-
+// a simple function for creating an animated rainbow
 void LEDStripController::Rainbow() {
 
-  // increment the hue position on every update
+  // increment the hue position on every update so the rainbow moves
   hue++;
 
   // FastLED's built-in rainbow generator
@@ -205,6 +236,7 @@ void LEDStripController::Rainbow() {
 }
 
 
+// same as the above function except this also ads glitter
 void LEDStripController::RainbowWithGlitter() {
   // reference our rainbow function, plus some random sparkly glitter
   Rainbow();
@@ -212,8 +244,35 @@ void LEDStripController::RainbowWithGlitter() {
 }
 
 
+// the glitter function, randomly selects a pixel and sets it to white
 void LEDStripController::AddGlitter( fract8 chanceOfGlitter) {
   if( random8() < chanceOfGlitter) {
-    ledStrip[ ledStripStartIndex + random16(numPixelsInStrip - 1) ] += CRGB::White;
+    ledStrip[ ledStripStartIndex + random16(numPixelsInStrip) ] += CRGB::White;
   }
+}
+
+
+
+
+
+// Pop and Fade. like confetti!!!
+void LEDStripController::Confetti() {
+  // increment the hue position on every update so the rainbow moves
+  hue++;
+
+  // random colored speckles that blink in and fade smoothly
+  fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 10);
+  int pos = random16(numPixelsInStrip);
+  ledStrip[pos] += CHSV( hue + random8(64), 200, 255);
+}
+
+
+// a colored dot sweeping back and forth, with fading trails
+void LEDStripController::Sinelon(){
+  // increment the hue position on every update so the rainbow moves
+  hue++;
+
+  fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 20);
+  int pos = beatsin16( GLOBAL_BPM / 2, 0, numPixelsInStrip - 1 , beatStartTime);  
+  ledStrip[pos] += CHSV( hue, full_saturation, 192);
 }

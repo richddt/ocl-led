@@ -1,8 +1,5 @@
 /*
-  LEDStripController.h     - Class that provides specific controlls of a defined LED Strip using the FastLED Library
-                                Originally intended to play nice with MIDI controllers
-  Created by Turner E. Kirk, January 20, 2019.
-  Released into the public domain.
+  LEDStripController.h - Class that provides specific controlls of a defined LED Strip using the FastLED Library
 */
 
 #ifndef LEDStripController_h
@@ -34,20 +31,24 @@ class LEDStripController
   //********** PRIVATE MEMBER VARIABLES AND FUNCTIONS **********
   private:
     
+    // our virtual strip representations
     CRGB *ledStrip;
     uint16_t ledStripStartIndex = 0;
     uint16_t numPixelsInStrip;
 
+    // a globally defined Enum that makes it easy to update animations with human readable names
     AnimationType activeAnimationType;
     
+    // mutable variables that save the state of the strip's hue, saturation and brightness
     uint8_t hue = 92;
     uint8_t saturation = full_saturation;
     uint8_t brightness = full_brightness;
   
+    // mutable variables that help manage the state of parameters used in specific animations
     uint32_t beatStartTime = 0;
     bool showStrip = true;
 
-    //GENERAL UPDATE TIME INTERVALS
+    //General timing variables used in our Update() method
     unsigned long lastUpdateTime = 0; // time of last update of position
     uint16_t updateInterval = DEFAULT_UPDATE_INTERVAL;   // milliseconds between updates. Likely needs to be 5
 
@@ -64,6 +65,8 @@ class LEDStripController
     void Rainbow();
     void RainbowWithGlitter();
     void AddGlitter( fract8 chanceOfGlitter);
+    void Confetti();
+    void Sinelon();
 
 };
 

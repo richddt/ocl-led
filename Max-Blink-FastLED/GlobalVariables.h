@@ -1,7 +1,6 @@
 /*
-  GlobalVariables.h  - Globally defined variables to be used throughout the sketches
+  GlobalVariables.h  - Globally defined variables to be used throughout the sketch
                     -- Hardware definitions for various testing setups
-
 */
 
 #ifndef GlobalVariables_h
@@ -71,6 +70,8 @@
     FADE_OUT_BPM,
     RAINBOW,
     RAINBOW_W_GLITTER,
+    CONFETTI,
+    SINELON,
     SOLID_COLOR,
     NONE
   };
