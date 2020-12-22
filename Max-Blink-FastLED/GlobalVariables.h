@@ -15,33 +15,20 @@
   const uint16_t GLOBAL_BPM = 85;
 
   // ******************************************************************************************
-  //    HARDWARE DEFINITION SELECT - selects hardware definitions below
+  //    HARDWARE DEFINITION SELECT - 
+  //        uncomment this line if you want to enable hardware definitions
+  //        contained withint #if statement for __TURNERS_TESTING__
+  //        otherwise the settings after #else will be used
   // ******************************************************************************************
-  //#define __PRODUCTION_VERSION__
-  #define __TK_TESTING__
+  //#define __TURNERS_TESTING__
 
   
   // ******************************************************************************************
   //    HARDWARE DEFINITIONS -- Change these based on your hardware setup
   // ******************************************************************************************
 
-  #if defined(__PRODUCTION_VERSION__)
-
-    const int led = 13;      //pin number for onboard LED
-  
-    const int NUM_STRIPS = 3;
-
-    const int APIN = 18;     //pin number for StationA LED strip
-    const int ALEN = 125;    //pixel count for StationA LED strip
-    
-    const int BPIN = 19;     //pin number for StationB LED strip
-    const int BLEN = 125;    //pixel count for StationB LED strip
-    
-    const int CPIN = 22;     //pin number for StationC LED strip
-    const int CLEN = 125;    //pixel count for StationC LED strip
-    
-  
-  #elif defined(__TK_TESTING__) //|| defined(__TK_TESTING_2__)
+  // hardware definition for Turner's Testing setup  
+  #if defined(__TURNERS_TESTING__) //|| defined(__TK_TESTING_2__)
     
     const int led = LED_BUILTIN;
 
@@ -55,6 +42,22 @@
     const int BLEN = 125;     //pixel count for StationB LED strip
     const int CLEN = 125;     //pixel count for StationC LED strip
   
+  // the default settings to always fall back on
+  #else
+
+    const int led = 13;      //pin number for onboard LED
+  
+    const int NUM_STRIPS = 3;
+
+    const int APIN = 18;     //pin number for StationA LED strip
+    const int ALEN = 125;    //pixel count for StationA LED strip
+    
+    const int BPIN = 19;     //pin number for StationB LED strip
+    const int BLEN = 125;    //pixel count for StationB LED strip
+    
+    const int CPIN = 22;     //pin number for StationC LED strip
+    const int CLEN = 125;    //pixel count for StationC LED strip
+
   #endif
   
 
