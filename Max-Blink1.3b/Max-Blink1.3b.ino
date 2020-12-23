@@ -158,7 +158,7 @@ void colorWipe(uint32_t c, uint8_t wait) {
   }
 }
 
-void showStrip() {
+void _showStrip() {
    // NeoPixel
    Astrip.show();
 }
@@ -174,7 +174,7 @@ void setAll(byte red, byte green, byte blue) {
   for(int i = 0; i < ALEN; i++ ) {
     setPixel(i, red, green, blue);
   }
-  showStrip();
+  _showStrip();
 }
 
 // INTEGRATE CODE BELOW:
@@ -206,7 +206,7 @@ void FadeInOut(byte red, byte green, byte blue){
     g = (k/256.0)*green;
     b = (k/256.0)*blue;
     setAll(r,g,b);
-    showStrip();
+    _showStrip();
   }
      
   for(int k = 255; k >= 0; k=k-2) {
@@ -214,7 +214,7 @@ void FadeInOut(byte red, byte green, byte blue){
     g = (k/256.0)*green;
     b = (k/256.0)*blue;
     setAll(r,g,b);
-    showStrip();
+    _showStrip();
   }
 }
 

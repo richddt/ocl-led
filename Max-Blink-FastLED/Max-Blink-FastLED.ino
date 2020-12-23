@@ -10,7 +10,6 @@
 */
 
 /////// INCLUDES ///////
-#include "GlobalVariables.h"
 #include <FastLED.h>
 #include "LEDStripController.h"
 
@@ -20,20 +19,27 @@ char incomingByte;        // variable used for data from Max.
 unsigned long lastFastLEDShowTime = 0; // time of last update of position
 //uint16_t stripShowUpdateInterval = 1000/FRAMES_PER_SECOND;   // milliseconds between updates
 
+
 // THESE STEPS SETUP THE VIRTUAL REPRESENTATION OF OUR LED STRIPS
 // CRGB Array for each strip.
 CRGB aLEDs[ALEN];
 CRGB bLEDs[BLEN];
 CRGB cLEDs[CLEN];
 
+CRGBPalette16 colorPalette = HeatColors_p;
+
 // Controller for each strip (to manage each strip array's state without blocking main thread)
-LEDStripController ALedStripController(&(aLEDs[0]), ALEN);
-LEDStripController BLedStripController(&(bLEDs[0]), BLEN);
-LEDStripController CLedStripController(&(cLEDs[0]), CLEN);  
+LEDStripController ALedStripController(aLEDs, ALEN/2);
+LEDStripController ALedStripController_2(aLEDs, ALEN/2, ForestColors_p, INVERT_STRIP, ALEN/2);
+LEDStripController BLedStripController(bLEDs, BLEN, colorPalette);
+LEDStripController CLedStripController(cLEDs, CLEN, colorPalette);  
+
+const int NUM_SEGMENTS = 4;
 
 // Array of all controllers (to make it more efficient to update all of them at once)
-LEDStripController *LedStripControllerArray[NUM_STRIPS] = {  
-                                                            &ALedStripController, 
+LEDStripController *LedStripControllerArray[NUM_SEGMENTS] = {  
+                                                            &ALedStripController,
+                                                            &ALedStripController_2, 
                                                             &BLedStripController,
                                                             &CLedStripController
                                                           };
@@ -83,9 +89,19 @@ void loop() {
         triggerAnimationAllStrips(FADE_OUT_BPM);
         break;
 
+      // trigger FADE_LOW animation
+      case 'f':
+        triggerAnimationAllStrips(FADE_LOW_BPM);
+        break;
+
       // trigger RAINBOW animation
       case 'R':
         triggerAnimationAllStrips(RAINBOW);
+        break;
+
+      // trigger RAINBOW animation
+      case 'P':
+        triggerAnimationAllStrips(PALETTE);
         break;
 
       // trigger RAINBOW_W_GLITTER animation
@@ -113,7 +129,7 @@ void loop() {
   }
 
   // UPDATE THE VISUAL REPRESENTATION OF OUR STRIPS IN EACH STRIP CONTROLLER OBJECT
-  for(int i = 0; i < NUM_STRIPS; i++){
+  for(int i = 0; i < NUM_SEGMENTS; i++){
     LedStripControllerArray[i]->Update();
   }
 
@@ -144,7 +160,7 @@ void triggerAnimationAllStrips(AnimationType animationToSet){
 
   triggerLED(100);
 
-  for(int i = 0; i < NUM_STRIPS; i++){
+  for(int i = 0; i < NUM_SEGMENTS; i++){
     LedStripControllerArray[i]->SetActiveAnimationType( animationToSet );
   }
 

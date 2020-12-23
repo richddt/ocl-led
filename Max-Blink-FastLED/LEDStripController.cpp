@@ -13,12 +13,20 @@
 //      CONSTRUCTOR
 // *********************************************************************************
 
-LEDStripController::LEDStripController(CRGB *leds, uint16_t _numPixelsInStrip){
-  ledStrip = leds;
-  
-  numPixelsInStrip = _numPixelsInStrip;
+//LEDStripController::LEDStripController(CRGB *leds, uint16_t stripLength)
+LEDStripController::LEDStripController( CRGB *leds, 
+                                        uint16_t stripLength, 
+                                        CRGBPalette16 colorPalette, 
+                                        uint8_t invertStrip, 
+                                        uint16_t stripStartIndex)
+{
 
-  activeAnimationType = ALL_OFF;
+  _leds = &leds[stripStartIndex];
+  _stripLength = stripLength;
+  _colorPalette = colorPalette;
+  _invertStrip = invertStrip;
+
+  _activeAnimationType = ALL_OFF;
   
 }
 
@@ -29,8 +37,8 @@ LEDStripController::LEDStripController(CRGB *leds, uint16_t _numPixelsInStrip){
 
 void LEDStripController::Update() {
 
-  if( (millis() - lastUpdateTime) > updateInterval ){
-    switch(activeAnimationType) {
+  if( (millis() - _lastUpdateTime) > _updateInterval ){
+    switch(_activeAnimationType) {
       case ALL_OFF:
         AllOff();
         break;
@@ -45,8 +53,14 @@ void LEDStripController::Update() {
       case FADE_OUT_BPM:  
         FadeOutBPM();
         break;
+      case FADE_LOW_BPM:
+        FadeLowBPM();
+        break;
       case RAINBOW:
         Rainbow();
+        break;
+      case PALETTE:
+        Palette();
         break;
       case RAINBOW_W_GLITTER:
         RainbowWithGlitter();
@@ -69,7 +83,7 @@ void LEDStripController::Update() {
         break;
     }
     
-    lastUpdateTime = millis();
+    _lastUpdateTime = millis();
   }
 
 }
@@ -82,14 +96,14 @@ void LEDStripController::Update() {
 // *********************************************************************************
 
 AnimationType LEDStripController::GetActiveAnimationType(){
-     return activeAnimationType;
+     return _activeAnimationType;
 }
 
 // SET THE "AnimationType"
 void LEDStripController::SetActiveAnimationType(AnimationType newAnimationState){
 
-  if (activeAnimationType != newAnimationState) {
-    activeAnimationType = newAnimationState;
+  if (_activeAnimationType != newAnimationState) {
+    _activeAnimationType = newAnimationState;
   }
 
   // SET THE INITIAL STATE OF THE ANIMATION
@@ -100,43 +114,49 @@ void LEDStripController::SetActiveAnimationType(AnimationType newAnimationState)
 // IF THE ANIMATION IS TRIGGERED IT WILL INITIALIZE ITSELF BASED ON THESE SETTTINGS
 void LEDStripController::InitializeAnimation() {
 
-  switch(activeAnimationType) {
+  switch(_activeAnimationType) {
     case ALL_OFF:
-      updateInterval = ALL_OFF_UPDATE_INTERVAL;
+      _updateInterval = ALL_OFF_UPDATE_INTERVAL;
       break;
     case FADE_LOW:
-      updateInterval = FADE_UPDATE_INTERVAL;
-      break;
+      _updateInterval = FADE_UPDATE_INTERVAL;
+      break;  
     case FADE_IN:
     case FADE_OUT:
     case FADE_IN_OUT:
-      updateInterval = FADE_UPDATE_INTERVAL;
+      _updateInterval = FADE_UPDATE_INTERVAL;
       break;
     case FADE_OUT_BPM:  
-      SetStripHSV(CHSV( hue, saturation, brightness));
-      beatStartTime = millis();
-      showStrip = true;
-      updateInterval = FADE_UPDATE_INTERVAL;
+      SetStripHSV(CHSV( _hue, _saturation, _brightness));
+      _bsTimebase = millis();
+      _showStrip = true;
+      _updateInterval = FADE_UPDATE_INTERVAL;
       break;
+    case FADE_LOW_BPM:
+      SetStripHSV(CHSV( _hue, _saturation, _brightness));
+      _bsTimebase = millis();
+      _updateInterval = FADE_UPDATE_INTERVAL;
+      break;          
     case RAINBOW:
+    case PALETTE:
     case RAINBOW_W_GLITTER:
-      hue = 0;
-      updateInterval = RAINBOW_UPDATE_INTERVAL;
+      _hue = 0;
+      _updateInterval = RAINBOW_UPDATE_INTERVAL;
       break;
     case CONFETTI:
-      hue = 0;
-      updateInterval = DEFAULT_UPDATE_INTERVAL;
+      _hue = 0;
+      _updateInterval = DEFAULT_UPDATE_INTERVAL;
       break;
     case SINELON:  
-      hue = 0;
-      beatStartTime = millis();
-      updateInterval = DEFAULT_UPDATE_INTERVAL;
+      _hue = 0;
+      _bsTimebase = millis();
+      _updateInterval = DEFAULT_UPDATE_INTERVAL;
       break;      
     case SOLID_COLOR:
-      SetStripHSV(CHSV( random8(), saturation, brightness));
+      SetStripHSV(CHSV( random8(), _saturation, _brightness));
       break;      
     case NONE:
-      updateInterval = DEFAULT_UPDATE_INTERVAL;
+      _updateInterval = DEFAULT_UPDATE_INTERVAL;
       break;
     default:
       // do something for the default
@@ -153,14 +173,14 @@ void LEDStripController::InitializeAnimation() {
 // set strip to color based on CHSV input
 void LEDStripController::SetStripHSV(CHSV newCHSV) {
 
-  fill_solid( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, newCHSV ); 
+  fill_solid( _leds, _stripLength, newCHSV ); 
 
 }
 
 // set strip to color based on CRGB input
 void LEDStripController::SetStripHSV(CRGB newCRGB) {
 
-  fill_solid( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, newCRGB ); 
+  fill_solid( _leds, _stripLength, newCRGB ); 
 
 }
 
@@ -174,12 +194,12 @@ void LEDStripController::SetStripHSV(CRGB newCRGB) {
 
 // quickly turn off the strip
 void LEDStripController::AllOff() {
-  fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 80);
+  fadeToBlackBy( _leds, _stripLength, 80);
 }
 
 // more slowly fade the strip to black
 void LEDStripController::FadeLow() {
-  fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 10);
+  fadeToBlackBy( _leds, _stripLength, 10);
 }
 
 
@@ -192,7 +212,7 @@ void LEDStripController::FadeOutBPM() {
 // and the phase of the sine wave is set by the system's clock
 // if we set the "timebase" argument, then whatever time we give it will set 
 // the reference for a phase of 0
-// since we are setting the "beatStartTime" in our animation initialization function
+// since we are setting the "_bsTimebase" in our animation initialization function
 // then we always start with phase set to 0
 // we can then offset the phase by 90 degrees by using the "phase_offset" argument
 /*
@@ -204,40 +224,79 @@ void LEDStripController::FadeOutBPM() {
                     )	
 */
 
-  if(showStrip){
+  if(_showStrip){
 
     // we divide the global BPM by 2 because we are only using half of the saw wave (from 255 to 0)
-    // set the low value to 0 and high to full_brightness
-    // set timebase reference to now so that the wave reference always starts at 0
+    // set the low value to 0 and high to BRIGHTNESS_FULL
+    // set _bsTimebase reference to now so that the wave reference always starts at 0
     // then shift it by 1/4 wavelength using sizeof(byte) / 4    
-    uint8_t _brightness = beatsin8( GLOBAL_BPM / 2 , 0, full_brightness, beatStartTime, 256 / 4);
+    uint8_t brightness = beatsin8( GLOBAL_BPM / 2 , 0, BRIGHTNESS_FULL, _bsTimebase, 256 / 4);
   
-    SetStripHSV(CHSV( hue, saturation, _brightness));
+    SetStripHSV(CHSV( _hue, _saturation, brightness));
 
     // since we only want to trigger this animation as a one shot, 
     // we need to disable the animation once the brightnes drops below a certain threshold
     // as well as set the brightnes to 0 (or whatever value we want to stop it at)
-    if(_brightness <= 5){
-      SetStripHSV(CHSV( hue, saturation, 0));
-      showStrip = false;      
+    if(brightness <= 5){
+      SetStripHSV(CHSV( _hue, _saturation, 0));
+      _showStrip = false;      
     }
   
   }
 
 }
 
+// same as above except the fade stops at the lowBrightness level that is indicated
+void LEDStripController::FadeLowBPM() {
+
+
+
+
+
+
+}
+
+
 
 
 // a simple function for creating an animated rainbow
 void LEDStripController::Rainbow() {
 
-  // increment the hue position on every update so the rainbow moves
-  hue++;
+  // increment the _hue position on every update so the colors "move"
+  // if the strip is inverted "move" in the opposite direction 
+  if(_invertStrip){
+      _hue++;
+  }
+  else{
+      _hue--;
+  }
 
   // FastLED's built-in rainbow generator
-  fill_rainbow( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, hue, 7);
+  fill_rainbow( _leds, _stripLength, _hue, 7);
   
 }
+
+
+void LEDStripController::Palette()
+{
+
+  // increment the _hue position on every update so the colors "move"
+  // if the strip is inverted "move" in the opposite direction 
+  if(_invertStrip){
+      _hue++;
+  }
+  else{
+      _hue--;
+  }
+  
+  fill_palette( _leds, _stripLength, _hue, 7, _colorPalette, _brightness, LINEARBLEND);
+}
+
+
+
+
+
+
 
 
 // same as the above function except this also ads glitter
@@ -251,7 +310,7 @@ void LEDStripController::RainbowWithGlitter() {
 // the glitter function, randomly selects a pixel and sets it to white
 void LEDStripController::AddGlitter( fract8 chanceOfGlitter) {
   if( random8() < chanceOfGlitter) {
-    ledStrip[ ledStripStartIndex + random16(numPixelsInStrip) ] += CRGB::White;
+    _leds[ random16(_stripLength) ] += CRGB::White;
   }
 }
 
@@ -261,28 +320,28 @@ void LEDStripController::AddGlitter( fract8 chanceOfGlitter) {
 
 // Pop and Fade. like confetti!!!
 void LEDStripController::Confetti() {
-  // increment the hue position on every update so the rainbow moves
-  hue++;
+  // increment the _hue position on every update so the rainbow moves
+  _hue++;
 
   // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 10);
-  int pos = random16(numPixelsInStrip);
-  ledStrip[pos] += CHSV( hue + random8(64), 200, 255);
+  fadeToBlackBy( _leds, _stripLength, 10);
+  int pos = random16(_stripLength);
+  _leds[pos] += CHSV( _hue + random8(64), 200, 255);
 }
 
 
 // a colored dot sweeping back and forth, with fading trails
 void LEDStripController::Sinelon(){
-  // increment the hue position on every update so the rainbow moves
-  hue++;
+  // increment the _hue position on every update so the rainbow moves
+  _hue++;
 
-  fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 20);
+  fadeToBlackBy( _leds, _stripLength, 20);
 
   // divide the BPM by 2 so that half the saw wave will finish at the actual BPM
   // set the low value to 0 and high to one less than strip length
   // set timebase reference to now so that the wave reference always starts at 0
   // then shift it by 1/4 wavelength using sizeof(int) / 4
-  int pos = beatsin16( GLOBAL_BPM / 2, 0, numPixelsInStrip - 1 , beatStartTime, 65536 / 4);  
+  int pos = beatsin16( GLOBAL_BPM / 2, 0, _stripLength - 1 , _bsTimebase, 65536 / 4);  
   
-  ledStrip[pos] += CHSV( hue, full_saturation, 192);
+  _leds[pos] += CHSV( _hue, SATURATION_FULL, 192);
 }
