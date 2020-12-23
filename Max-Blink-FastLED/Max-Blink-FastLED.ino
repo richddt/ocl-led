@@ -32,10 +32,10 @@ LEDStripController BLedStripController(&(bLEDs[0]), BLEN);
 LEDStripController CLedStripController(&(cLEDs[0]), CLEN);  
 
 // Array of all controllers (to make it more efficient to update all of them at once)
-LEDStripController LedStripControllerArray[NUM_STRIPS] = {  
-                                                            ALedStripController, 
-                                                            BLedStripController,
-                                                            CLedStripController
+LEDStripController *LedStripControllerArray[NUM_STRIPS] = {  
+                                                            &ALedStripController, 
+                                                            &BLedStripController,
+                                                            &CLedStripController
                                                           };
 
 // *********************************************************************************
@@ -114,7 +114,7 @@ void loop() {
 
   // UPDATE THE VISUAL REPRESENTATION OF OUR STRIPS IN EACH STRIP CONTROLLER OBJECT
   for(int i = 0; i < NUM_STRIPS; i++){
-    LedStripControllerArray[i].Update();
+    LedStripControllerArray[i]->Update();
   }
 
 
@@ -145,7 +145,7 @@ void triggerAnimationAllStrips(AnimationType animationToSet){
   triggerLED(100);
 
   for(int i = 0; i < NUM_STRIPS; i++){
-    LedStripControllerArray[i].SetActiveAnimationType( animationToSet );
+    LedStripControllerArray[i]->SetActiveAnimationType( animationToSet );
   }
 
 }
