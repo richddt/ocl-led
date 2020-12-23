@@ -205,8 +205,12 @@ void LEDStripController::FadeOutBPM() {
 */
 
   if(showStrip){
-    // we divide the global BPM by 2 because we are only using half of the sine wave (from 255 to 0)
-    uint8_t _brightness = beatsin8( GLOBAL_BPM / 2 , 0, full_brightness, beatStartTime, 90);
+
+    // we divide the global BPM by 2 because we are only using half of the saw wave (from 255 to 0)
+    // set the low value to 0 and high to full_brightness
+    // set timebase reference to now so that the wave reference always starts at 0
+    // then shift it by 1/4 wavelength using sizeof(byte) / 4    
+    uint8_t _brightness = beatsin8( GLOBAL_BPM / 2 , 0, full_brightness, beatStartTime, 256 / 4);
   
     SetStripHSV(CHSV( hue, saturation, _brightness));
 
@@ -273,6 +277,12 @@ void LEDStripController::Sinelon(){
   hue++;
 
   fadeToBlackBy( &(ledStrip[ledStripStartIndex]), numPixelsInStrip, 20);
-  int pos = beatsin16( GLOBAL_BPM / 2, 0, numPixelsInStrip - 1 , beatStartTime);  
+
+  // divide the BPM by 2 so that half the saw wave will finish at the actual BPM
+  // set the low value to 0 and high to one less than strip length
+  // set timebase reference to now so that the wave reference always starts at 0
+  // then shift it by 1/4 wavelength using sizeof(int) / 4
+  int pos = beatsin16( GLOBAL_BPM / 2, 0, numPixelsInStrip - 1 , beatStartTime, 65536 / 4);  
+  
   ledStrip[pos] += CHSV( hue, full_saturation, 192);
 }
