@@ -29,6 +29,8 @@ enum AnimationType {
   FADE_IN_OUT_BPM,
   PALETTE,
   PALETTE_W_GLITTER,
+  PALETTE_FADE_LOW_BPM,
+  PALETTE_W_GLITTER_FADE_LOW_BPM,
   CONFETTI,
   SINELON,  
   NONE
@@ -76,7 +78,7 @@ class LEDStripController
                         CRGBPalette16 colorPalette = DEFAULT_PALETTE,                        
                         uint8_t invertStrip = 0,
                         uint16_t stripStartIndex = 0 );
-    void Update();
+    void Update(uint32_t currentTime);
 
     AnimationType GetActiveAnimationType();
     void SetActiveAnimationType(AnimationType newAnimationState);
@@ -109,9 +111,11 @@ class LEDStripController
     // mutable variables that help manage the state of parameters used in specific animations
     uint32_t _bsTimebase = 0;
     bool _showStrip = true;
+    uint8_t _paletteHue = 0;
+
 
     //General timing variables used in our Update() method
-    unsigned long _lastUpdateTime = 0; // time of last update of position
+    unsigned long _timeToUpdate = 0; // time of last update of position
     uint16_t _updateInterval = DEFAULT_UPDATE_INTERVAL;   // milliseconds between updates. Likely needs to be 5
 
     //INITIALIZATION AND STATIC STRIP COLOR METHODS
@@ -125,9 +129,11 @@ class LEDStripController
     void FadeOutBPM();
     void FadeLowBPM();
     void FadeInOutBPM();
-    void Palette();
+    void Palette();    
     void PaletteWithGlitter();
-    void AddGlitter( fract8 chanceOfGlitter);
+    void PaletteFadeLowBPM();
+    void PaletteWithGlitterFadeLowBPM();
+    void AddGlitter( fract8 chanceOfGlitter, uint8_t brightness = 255);
     void Confetti();
     void Sinelon();
 

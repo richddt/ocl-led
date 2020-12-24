@@ -13,11 +13,16 @@
 #include <FastLED.h>
 #include "LEDStripController.h"
 
-/////// CONSTANTS ///////
+/////// GLOBAL CONSTANTS ///////
 #define baudRate 9600   //this is a safe and common rate. Feel free to change it as desired. Justmake sure that Max and the Teensy are at the same setting.
 char incomingByte;        // variable used for data from Max.
-unsigned long lastFastLEDShowTime = 0; // time of last update of position
-//uint16_t stripShowUpdateInterval = 1000/FRAMES_PER_SECOND;   // milliseconds between updates
+
+/////// GLOBAL MUTABLES ///////
+uint32_t timeToCallFastLEDShow = 0; // time of last update of call to FastLED.show()
+
+// teensy LED timer variables
+uint32_t timeToTurnOffTeensyLED = 0;
+bool teensyLEDIsOn = false;
 
 
 // THESE STEPS SETUP THE VIRTUAL REPRESENTATION OF OUR LED STRIPS
@@ -25,7 +30,6 @@ unsigned long lastFastLEDShowTime = 0; // time of last update of position
 CRGB aLEDs[ALEN];
 CRGB bLEDs[BLEN];
 CRGB cLEDs[CLEN];
-
 
 // Controller for each strip (to manage each strip array's state without blocking main thread)
 
@@ -68,6 +72,9 @@ LEDStripController *LedStripControllerArray[NUM_SEGMENTS] = {
                                                               &CLedStripController_3,
                                                               &CLedStripController_4,
                                                             };
+
+
+
 
 // *********************************************************************************
 //      SETUP
@@ -151,6 +158,30 @@ void loop() {
         triggerAnimationAllStrips(PALETTE_W_GLITTER);
         break;
       }
+      case 'P':
+      {
+        // for this animation, (PALETTE_FADE_LOW_BPM)
+        // argument 1 does nothing so we set to 0 (normally hue)
+        // argument 1 does nothing so we set to 0 (normally brightness)
+        // argument 3 sets the speed of the fade in BPM
+        // argument 4 sets the brightness the fade starts at
+        // argument 5 sets the brightness the fade ends at  
+        setAllStripParams(0, 0, aBPM, 255, 20);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        triggerAnimationAllStrips(PALETTE_FADE_LOW_BPM);
+        break;
+      }      
+      case 'G':
+      {
+        // for this animation, (PALETTE_W_GLITTER_FADE_LOW_BPM)
+        // argument 1 does nothing so we set to 0 (normally hue)
+        // argument 2 sets the brightness of the glitter pops
+        // argument 3 sets the speed of the fade in BPM
+        // argument 4 sets the brightness the fade starts at
+        // argument 5 sets the brightness the fade ends at
+        setAllStripParams(0, 125, aBPM*2, 255, 20);
+        triggerAnimationAllStrips(PALETTE_W_GLITTER_FADE_LOW_BPM);
+        break;
+      }      
       case 'c':
       {
         triggerAnimationAllStrips(CONFETTI);
@@ -208,18 +239,24 @@ void loop() {
     
   }
 
+  static uint32_t currentTime;
+  currentTime = millis();
+
+  // update the teensy led (this makes it so the teensy LED doesn't block the main thread)
+  updateTeensyLED(currentTime);
+
+
   // UPDATE THE VISUAL REPRESENTATION OF OUR STRIPS IN EACH STRIP CONTROLLER OBJECT
   for(int i = 0; i < NUM_SEGMENTS; i++){
-    LedStripControllerArray[i]->Update();
-  }
-
+    LedStripControllerArray[i]->Update(currentTime);
+  } 
 
   // PUSH OUT LATEST FRAME TO THE ACTUAL PHYSICAL LEDS
   // this physically displays the current state of leds in each strip controller object
-  // we wrap it in a timer so that it only triggers at a modest frame rate
-  if( (millis() - lastFastLEDShowTime) > (1000/FRAMES_PER_SECOND) ){
+  // we wrap it in a timer so that it only triggers at our chosen frame rate
+  if( currentTime > timeToCallFastLEDShow ){
      FastLED.show();
-     lastFastLEDShowTime = millis();
+     timeToCallFastLEDShow = currentTime + (1000/FRAMES_PER_SECOND);
   }
 
 
@@ -238,7 +275,7 @@ void loop() {
 // based on the AnimationType Enum value sent into the function
 void triggerAnimationAllStrips(AnimationType animationToSet){
 
-  triggerLED(100);
+  turnTeensyLEDOn();
 
   for(int i = 0; i < NUM_SEGMENTS; i++){
     LedStripControllerArray[i]->SetActiveAnimationType( animationToSet );
@@ -246,20 +283,12 @@ void triggerAnimationAllStrips(AnimationType animationToSet){
 
 }
 
-// this function blinks the onboard LED. The argument sets how long is the blink.
-void triggerLED(int blinkTime) {      
-  digitalWrite(led, HIGH);            // turn the LED on (HIGH is the voltage level)
-  delay(blinkTime);                   // wait for a second
-  digitalWrite(led, LOW);             // turn the LED off by making the voltage LOW
-}
-
-
 
 // blink the onboard LED
 // update all the important parameters for the solid color and BPM based animations
 void setAllStripParams(uint8_t aHue, uint8_t aBrightness, uint16_t aBPM, uint8_t aBrightnessHigh, uint8_t aBrightnessLow){
 
-  triggerLED(100);
+  turnTeensyLEDOn();
 
   for(int i = 0; i < NUM_SEGMENTS; i++){
     LedStripControllerArray[i]->SetStripParams( aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow);
@@ -272,10 +301,32 @@ void setAllStripParams(uint8_t aHue, uint8_t aBrightness, uint16_t aBPM, uint8_t
 // blink the onboard LED
 void setAllStripColorPalettes(CRGBPalette16 newColorPalette){
 
-  triggerLED(100);
+  turnTeensyLEDOn();
 
   for(int i = 0; i < NUM_SEGMENTS; i++){
     LedStripControllerArray[i]->SetColorPalette( newColorPalette );
+  }
+
+}
+
+
+// this turns on the Teensy LED and tells our program to turn it off in 500 ms
+void turnTeensyLEDOn(){
+
+  digitalWrite(led, HIGH); 
+
+  teensyLEDIsOn = true;
+
+  timeToTurnOffTeensyLED = millis() + 100;
+}
+
+
+// this function turns the LED off when it's time
+void updateTeensyLED(uint32_t currentTime) {
+  
+  if(currentTime > timeToTurnOffTeensyLED && teensyLEDIsOn){
+    digitalWrite(led, LOW);
+    teensyLEDIsOn = false;
   }
 
 }

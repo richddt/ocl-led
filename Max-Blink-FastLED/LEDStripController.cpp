@@ -35,9 +35,9 @@ LEDStripController::LEDStripController( CRGB *leds,
 //      MAIN UPDATE FUNCTION
 // *********************************************************************************
 
-void LEDStripController::Update() {
+void LEDStripController::Update(uint32_t currentTime) {
 
-  if( (millis() - _lastUpdateTime) > _updateInterval ){
+  if( currentTime > _timeToUpdate ){
     switch(_activeAnimationType) {
       case ALL_OFF:
         AllOff();
@@ -60,6 +60,12 @@ void LEDStripController::Update() {
       case PALETTE_W_GLITTER:
         PaletteWithGlitter();
         break;
+      case PALETTE_FADE_LOW_BPM:
+        PaletteFadeLowBPM();
+        break;
+      case PALETTE_W_GLITTER_FADE_LOW_BPM:
+        PaletteWithGlitterFadeLowBPM();
+        break;
       case CONFETTI:
         Confetti();
         break;
@@ -73,7 +79,7 @@ void LEDStripController::Update() {
         break;
     }
     
-    _lastUpdateTime = millis();
+    _timeToUpdate = currentTime + _updateInterval;
   }
 
 }
@@ -118,15 +124,21 @@ void LEDStripController::InitializeAnimation() {
       break;
     case PALETTE:
     case PALETTE_W_GLITTER:
-      _hue = 0;
+      //_paletteHue = 0;
+      _updateInterval = PALETTE_UPDATE_INTERVAL;
+      break;
+    case PALETTE_FADE_LOW_BPM:
+    case PALETTE_W_GLITTER_FADE_LOW_BPM:
+      _showStrip = true;
+      _bsTimebase = millis();
       _updateInterval = PALETTE_UPDATE_INTERVAL;
       break;
     case CONFETTI:
-      _hue = 0;
+      //_paletteHue = 0;
       _updateInterval = CONFETTI_UPDATE_INTERVAL;
       break;
     case SINELON:  
-      _hue = 0;
+      //_paletteHue = 0;
       _bsTimebase = millis();
       _updateInterval = SINELON_UPDATE_INTERVAL;
       break;
@@ -293,16 +305,16 @@ void LEDStripController::FadeInOutBPM() {
 void LEDStripController::Palette()
 {
 
-  // increment the _hue position on every update so the colors "move"
+  // increment the _paletteHue position on every update so the colors "move"
   // if the strip is inverted "move" in the opposite direction 
   if(_invertStrip){
-      _hue++;
+      _paletteHue++;
   }
   else{
-      _hue--;
+      _paletteHue--;
   }
   
-  fill_palette( _leds, _stripLength, _hue, 7, _colorPalette, _brightness, LINEARBLEND);
+  fill_palette( _leds, _stripLength, _paletteHue, 7, _colorPalette, _brightness, LINEARBLEND);
 }
 
 
@@ -314,11 +326,56 @@ void LEDStripController::PaletteWithGlitter() {
 }
 
 // the glitter function, randomly selects a pixel and sets it to white
-void LEDStripController::AddGlitter( fract8 chanceOfGlitter) {
+void LEDStripController::AddGlitter( fract8 chanceOfGlitter, uint8_t brightness) {
   if( random8() < chanceOfGlitter) {
-    _leds[ random16(_stripLength) ] += CRGB::White;
+    //_leds[ random16(_stripLength) ] += CRGB::White;
+    _leds[ random16(_stripLength) ] = CHSV( 0, 0, brightness);
   }
 }
+
+
+// combining the FadeLowBPM and Palette functions
+void LEDStripController::PaletteFadeLowBPM() {
+
+  // increment the _paletteHue position on every update so the colors "move"
+  // if the strip is inverted "move" in the opposite direction 
+  if(_invertStrip){
+      _paletteHue++;
+  }
+  else{
+      _paletteHue--;
+  }
+
+  // we divide the _bpm by 2 because we are only using half of the saw wave (from 255 to 0)
+  // set the low value to 0 and high to _brightnessHigh
+  // set _bsTimebase reference to now so that the wave reference always starts at 0
+  // then shift it by 1/4 wavelength using sizeof(byte) / 4    
+  uint8_t brightness = beatsin8( _bpm / 2 , 0, _brightnessHigh, _bsTimebase, 256 / 4);
+
+
+  // since we only want to trigger this animation as a one shot, 
+  // we need to disable the animation once the brightnes drops below a certain threshold
+  // as well as set the brightnes to 0 (or whatever value we want to stop it at)
+  if(brightness > _brightnessLow && brightness > 5 && _showStrip){ // MAGIC NUMBER ALERT!!!
+    fill_palette( _leds, _stripLength, _paletteHue, 7, _colorPalette, brightness, LINEARBLEND);
+  }
+  else {
+    fill_palette( _leds, _stripLength, _paletteHue, 7, _colorPalette, _brightnessLow, LINEARBLEND);
+    _showStrip = false;      
+  }
+  
+
+}
+
+// same as the above function except this also ads glitter
+void LEDStripController::PaletteWithGlitterFadeLowBPM() {
+  // reference our palette function, plus some random sparkly glitter
+  PaletteFadeLowBPM();
+  AddGlitter(80, _brightness); // MAGIC NUMBER ALERT!!!
+}
+
+
+
 
 
 
@@ -330,14 +387,14 @@ void LEDStripController::Confetti() {
   uint16_t pos = random16(_stripLength);  
   //int pos = random16(_stripLength);
   
-  _hue++;
+  _paletteHue++;
   // if you want to draw from a palette use this method
   //_leds[pos] += ColorFromPalette( _colorPalette, random8(), _brightness);
-  _leds[pos] += ColorFromPalette( _colorPalette, _hue + random8(64), _brightness);
+  _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue + random8(64), _brightness);
   
   // here's an alternate method
-  //_hue++;
-  //_leds[pos] += CHSV( _hue + random8(64), 200, 255);
+  //_paletteHue++;
+  //_leds[pos] += CHSV( _paletteHue + random8(64), 200, 255);
   
 }
 
@@ -348,8 +405,8 @@ void LEDStripController::Sinelon(){
   // fade the entire strip by 20. This is what causes the animation to have a tail
   fadeToBlackBy( _leds, _stripLength, 20); // MAGIC NUMBER ALERT!!!
 
-  // increment the _hue position so the color moves through the palette
-  _hue++;
+  // increment the _paletteHue position so the color moves through the palette
+  _paletteHue++;
 
   // divide the BPM by 2 so that half the saw wave will finish at the actual BPM
   // set the low value to 0 and high to one less than strip length
@@ -358,8 +415,8 @@ void LEDStripController::Sinelon(){
   int pos = beatsin16( _bpm / 2, 0, _stripLength - 1 , _bsTimebase, 65536 / 4);  
   
   // add the palette color to the led at pos
-  _leds[pos] += ColorFromPalette( _colorPalette, _hue++, _brightness);
+  _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue++, _brightness);
 
-  //_leds[pos] += CHSV( _hue, SATURATION_FULL, _brightness);
+  //_leds[pos] += CHSV( _paletteHue, SATURATION_FULL, _brightness);
 
 }
