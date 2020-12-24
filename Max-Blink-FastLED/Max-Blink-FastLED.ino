@@ -78,7 +78,7 @@ void loop() {
     
     // you now have control over these parameters for each strip
     uint8_t aHue = 90;              // the hue/color of the strip for all animations other than the palette controlled animations
-    uint8_t aBrightness = 255;      // the brightness of the strip for all animations other than the palette controlled animations
+    uint8_t aBrightness = 255;      // the brightness of the strip for all animations INCLUDING palette controlled animations
     uint16_t aBPM = 85;             // the speed of the animation in BPM for any of the "Fade" animations
     uint8_t aBrightnessHigh = 255;  // the top level of brightness for any of the "Fade" animations
     uint8_t aBrightnessLow = 80;    // the bottom level of brightness for any of the "Fade" animations
