@@ -133,13 +133,13 @@ void loop() {
 
       case 'b':
       {
-        setAllStripParams(180, 255, aBPM, 255, 70);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        setAllStripParams(160, 255, aBPM, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }
       case 'L':
       {      
-        setAllStripParams(180, 255, aBPM*2, 255, 70);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        setAllStripParams(160, 255, aBPM*2, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }

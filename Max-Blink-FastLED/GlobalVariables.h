@@ -21,7 +21,7 @@
   //        contained withint #if statement for __TURNERS_TESTING__
   //        otherwise the settings after #else will be used
   // ******************************************************************************************
-  #define __TURNERS_TESTING__
+  //#define __TURNERS_TESTING__
 
   
   // ******************************************************************************************
