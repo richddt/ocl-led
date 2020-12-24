@@ -47,13 +47,13 @@
     const int led = 13;      //pin number for onboard LED
 
     const int APIN = 18;     //pin number for StationA LED strip
-    const int ALEN = 125;    //pixel count for StationA LED strip
+    const int ALEN = 80;    //pixel count for StationA LED strip
     
     const int BPIN = 19;     //pin number for StationB LED strip
-    const int BLEN = 125;    //pixel count for StationB LED strip
+    const int BLEN = 80;    //pixel count for StationB LED strip
     
     const int CPIN = 22;     //pin number for StationC LED strip
-    const int CLEN = 125;    //pixel count for StationC LED strip
+    const int CLEN = 80;    //pixel count for StationC LED strip
 
   #endif
 

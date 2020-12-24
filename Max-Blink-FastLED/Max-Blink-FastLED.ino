@@ -28,23 +28,45 @@ CRGB cLEDs[CLEN];
 
 
 // Controller for each strip (to manage each strip array's state without blocking main thread)
-LEDStripController ALedStripController_1(aLEDs, floor(ALEN * 1.0/3.0));
-LEDStripController ALedStripController_2(aLEDs, ceil(ALEN * 1.0/3.0), DEFAULT_PALETTE, !INVERT_STRIP, floor(ALEN * 1.0/3.0));
-LEDStripController ALedStripController_3(aLEDs, ceil(ALEN * 1.0/3.0), DEFAULT_PALETTE, INVERT_STRIP, floor(ALEN * 2.0/3.0));
 
+// //Simple non-segmented version
 //LEDStripController ALedStripController_1(aLEDs, ALEN);
-LEDStripController BLedStripController(bLEDs, BLEN);
-LEDStripController CLedStripController(cLEDs, CLEN);  
 
-const int NUM_SEGMENTS = 5;
+// Segmented version
+LEDStripController ALedStripController_1(aLEDs, 24, DEFAULT_PALETTE, !INVERT_STRIP, 0); // right side triangle
+LEDStripController ALedStripController_2(aLEDs, 16, DEFAULT_PALETTE, !INVERT_STRIP, 24); // top big triangle
+LEDStripController ALedStripController_3(aLEDs, 16, DEFAULT_PALETTE, INVERT_STRIP, 24+16); // top big triangle (inverted)
+LEDStripController ALedStripController_4(aLEDs, 24, DEFAULT_PALETTE, INVERT_STRIP, 24+32);  // left side triangle (inverted)
+
+
+LEDStripController BLedStripController_1(bLEDs, 24, DEFAULT_PALETTE, !INVERT_STRIP, 0); // right side triangle
+LEDStripController BLedStripController_2(bLEDs, 16, DEFAULT_PALETTE, !INVERT_STRIP, 24); // top big triangle
+LEDStripController BLedStripController_3(bLEDs, 16, DEFAULT_PALETTE, INVERT_STRIP, 24+16); // top big triangle (inverted)
+LEDStripController BLedStripController_4(bLEDs, 24, DEFAULT_PALETTE, INVERT_STRIP, 24+32);  // left side triangle (inverted)
+
+
+LEDStripController CLedStripController_1(cLEDs, 24, DEFAULT_PALETTE, !INVERT_STRIP, 0); // right side triangle
+LEDStripController CLedStripController_2(cLEDs, 16, DEFAULT_PALETTE, !INVERT_STRIP, 24); // top big triangle
+LEDStripController CLedStripController_3(cLEDs, 16, DEFAULT_PALETTE, INVERT_STRIP, 24+16); // top big triangle (inverted)
+LEDStripController CLedStripController_4(cLEDs, 24, DEFAULT_PALETTE, INVERT_STRIP, 24+32);  // left side triangle (inverted)
+
+
+const int NUM_SEGMENTS = 12;
 
 // Array of all controllers (to make it more efficient to update all of them at once)
 LEDStripController *LedStripControllerArray[NUM_SEGMENTS] = {  
                                                               &ALedStripController_1,
                                                               &ALedStripController_2, 
                                                               &ALedStripController_3,
-                                                              &BLedStripController,
-                                                              &CLedStripController
+                                                              &ALedStripController_4,
+                                                              &BLedStripController_1,
+                                                              &BLedStripController_2, 
+                                                              &BLedStripController_3,
+                                                              &BLedStripController_4,
+                                                              &CLedStripController_1,
+                                                              &CLedStripController_2, 
+                                                              &CLedStripController_3,
+                                                              &CLedStripController_4,
                                                             };
 
 // *********************************************************************************
@@ -77,13 +99,13 @@ void loop() {
     incomingByte = Serial.read();   // read incoming byte
     
     // you now have control over these parameters for each strip
-    uint8_t aHue = 90;              // the hue/color of the strip for all animations other than the palette controlled animations
+    uint8_t aHue = 90;              // the hue/color of the strip for all animations other than the palette controlled animations. 0 (red) - 255 (end spectrum red)
     uint8_t aBrightness = 255;      // the brightness of the strip for all animations INCLUDING palette controlled animations
     uint16_t aBPM = 85;             // the speed of the animation in BPM for any of the "Fade" animations
     uint8_t aBrightnessHigh = 255;  // the top level of brightness for any of the "Fade" animations
-    uint8_t aBrightnessLow = 80;    // the bottom level of brightness for any of the "Fade" animations
+    uint8_t aBrightnessLow = 80;    // the bottom level of brightness for any of the "Fade" animations; colors below ~30 are very inaccurate
 
-    // add this funciton into the switch statement below before triggering an animation
+    // add this function into the switch statement below before triggering an animation
     //setAllStripParams(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow);
 
     // for color palette animations, you can use this one as well
@@ -101,8 +123,16 @@ void loop() {
         triggerAnimationAllStrips(FADE_OUT_BPM);
         break;
       }
+
+      case 'b':
+      {
+        setAllStripParams(180, 255, aBPM, 255, 70);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        triggerAnimationAllStrips(FADE_LOW_BPM);
+        break;
+      }
       case 'L':
       {      
+        setAllStripParams(180, 255, aBPM*2, 255, 70);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }
@@ -155,7 +185,7 @@ void loop() {
           uint8_t newHue = random8();
           uint8_t newBrightness = random8(30, 220);
           uint8_t newBrightnessHigh = random8(150, 255);
-          uint8_t newBrightnessLow = random8(0, 50);
+          uint8_t newBrightnessLow = random8(30, 50); // min 30;  colors below ~30 are very inaccurate
           uint16_t newBPM = random16(60, 160);
 
           Serial.println("************");
