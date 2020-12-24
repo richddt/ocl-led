@@ -23,30 +23,39 @@
 // ******************************************************************
 enum AnimationType {
   ALL_OFF,
-  FADE_LOW,
-  FADE_IN,
-  FADE_OUT,
-  FADE_IN_OUT,
+  SOLID_COLOR,
   FADE_OUT_BPM,
   FADE_LOW_BPM,
-  RAINBOW,
+  FADE_IN_OUT_BPM,
   PALETTE,
-  RAINBOW_W_GLITTER,
+  PALETTE_W_GLITTER,
   CONFETTI,
-  SINELON,
-  SOLID_COLOR,
+  SINELON,  
   NONE
 };
 
 
+const CRGBPalette16 DEFAULT_PALETTE = RainbowColors_p;
+const CRGBPalette16 ALL_COLOR_PALETTES[8] = {
+                                                RainbowColors_p,
+                                                ForestColors_p,
+                                                CloudColors_p,
+                                                LavaColors_p,
+                                                OceanColors_p,
+                                                PartyColors_p,
+                                                HeatColors_p, // fire
+                                                RainbowStripeColors_p,
+                                              };
+
 // ******************************************************************
 //    UPDATE INTERVALS - the time in milliseconds between updates
 // ******************************************************************
-#define DEFAULT_UPDATE_INTERVAL 5
-
-#define ALL_OFF_UPDATE_INTERVAL 5
+#define DEFAULT_UPDATE_INTERVAL 10
 #define FADE_UPDATE_INTERVAL 5
-#define RAINBOW_UPDATE_INTERVAL 5
+#define PALETTE_UPDATE_INTERVAL 5
+#define CONFETTI_UPDATE_INTERVAL 10
+#define SINELON_UPDATE_INTERVAL 10
+
 
 // this will set whether or not the strip is inverted
 // meaning the beginning is the end and the end is the beginning
@@ -64,13 +73,15 @@ class LEDStripController
     //LEDStripController(CRGB *leds, uint16_t stripLength); // Constructor needs to be fully defined
     LEDStripController( CRGB *leds, 
                         uint16_t stripLength,
-                        CRGBPalette16 colorPalette = (CRGBPalette16)RainbowColors_p,
-                        uint8_t invertStrip = 0, 
+                        CRGBPalette16 colorPalette = DEFAULT_PALETTE,                        
+                        uint8_t invertStrip = 0,
                         uint16_t stripStartIndex = 0 );
     void Update();
 
     AnimationType GetActiveAnimationType();
     void SetActiveAnimationType(AnimationType newAnimationState);
+    void SetStripParams(uint8_t hue, uint8_t brightness, uint16_t bpm, uint8_t brightnessHigh, uint8_t brightnessLow);
+    void SetColorPalette(CRGBPalette16 colorPalette);
     
     
     
@@ -91,6 +102,9 @@ class LEDStripController
     uint8_t _hue = 92;
     uint8_t _saturation = SATURATION_FULL;
     uint8_t _brightness = BRIGHTNESS_FULL;
+    uint8_t _brightnessHigh = BRIGHTNESS_FULL;
+    uint8_t _brightnessLow = 40;
+    uint16_t _bpm = GLOBAL_BPM;
   
     // mutable variables that help manage the state of parameters used in specific animations
     uint32_t _bsTimebase = 0;
@@ -107,13 +121,12 @@ class LEDStripController
     
     //ANIMATION METHODS
     void AllOff();
-    void FadeLow();
-    void FadeInOut();
+    void SolidColor();
     void FadeOutBPM();
     void FadeLowBPM();
-    void Rainbow();
+    void FadeInOutBPM();
     void Palette();
-    void RainbowWithGlitter();
+    void PaletteWithGlitter();
     void AddGlitter( fract8 chanceOfGlitter);
     void Confetti();
     void Sinelon();

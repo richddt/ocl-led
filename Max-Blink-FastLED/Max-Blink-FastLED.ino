@@ -26,23 +26,26 @@ CRGB aLEDs[ALEN];
 CRGB bLEDs[BLEN];
 CRGB cLEDs[CLEN];
 
-CRGBPalette16 colorPalette = HeatColors_p;
 
 // Controller for each strip (to manage each strip array's state without blocking main thread)
-LEDStripController ALedStripController(aLEDs, ALEN/2);
-LEDStripController ALedStripController_2(aLEDs, ALEN/2, ForestColors_p, INVERT_STRIP, ALEN/2);
-LEDStripController BLedStripController(bLEDs, BLEN, colorPalette);
-LEDStripController CLedStripController(cLEDs, CLEN, colorPalette);  
+LEDStripController ALedStripController_1(aLEDs, floor(ALEN * 1.0/3.0));
+LEDStripController ALedStripController_2(aLEDs, ceil(ALEN * 1.0/3.0), DEFAULT_PALETTE, !INVERT_STRIP, floor(ALEN * 1.0/3.0));
+LEDStripController ALedStripController_3(aLEDs, ceil(ALEN * 1.0/3.0), DEFAULT_PALETTE, INVERT_STRIP, floor(ALEN * 2.0/3.0));
 
-const int NUM_SEGMENTS = 4;
+//LEDStripController ALedStripController_1(aLEDs, ALEN);
+LEDStripController BLedStripController(bLEDs, BLEN);
+LEDStripController CLedStripController(cLEDs, CLEN);  
+
+const int NUM_SEGMENTS = 5;
 
 // Array of all controllers (to make it more efficient to update all of them at once)
 LEDStripController *LedStripControllerArray[NUM_SEGMENTS] = {  
-                                                            &ALedStripController,
-                                                            &ALedStripController_2, 
-                                                            &BLedStripController,
-                                                            &CLedStripController
-                                                          };
+                                                              &ALedStripController_1,
+                                                              &ALedStripController_2, 
+                                                              &ALedStripController_3,
+                                                              &BLedStripController,
+                                                              &CLedStripController
+                                                            };
 
 // *********************************************************************************
 //      SETUP
@@ -73,57 +76,104 @@ void loop() {
   while(Serial.available()) {         // check for incoming bytes
     incomingByte = Serial.read();   // read incoming byte
     
+    // you now have control over these parameters for each strip
+    uint8_t aHue = 90;              // the hue/color of the strip for all animations other than the palette controlled animations
+    uint8_t aBrightness = 255;      // the brightness of the strip for all animations other than the palette controlled animations
+    uint16_t aBPM = 85;             // the speed of the animation in BPM for any of the "Fade" animations
+    uint8_t aBrightnessHigh = 255;  // the top level of brightness for any of the "Fade" animations
+    uint8_t aBrightnessLow = 80;    // the bottom level of brightness for any of the "Fade" animations
+
+    // add this funciton into the switch statement below before triggering an animation
+    //setAllStripParams(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow);
+
+    // for color palette animations, you can use this one as well
+    CRGBPalette16 aColorPalette = RainbowColors_p; // the color palette that controls the colors for any of the palette controlled animations
+    //setAllStripColorPalettes(newColorPalette);
+
     switch (incomingByte) {
-      // trigger ALL_OFF animation
-      case 'b':    
+      case 'o':
+      {
         triggerAnimationAllStrips(ALL_OFF);
         break;
-
-      // trigger FADE_LOW animation
-      case 'F':
-        triggerAnimationAllStrips(FADE_LOW);
-        break;
-      
-      // trigger FADE_IN_OUT animation
-      case 'B':    
+      }
+      case 'O':
+      {
         triggerAnimationAllStrips(FADE_OUT_BPM);
         break;
-
-      // trigger FADE_LOW animation
-      case 'f':
+      }
+      case 'L':
+      {      
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
-
-      // trigger RAINBOW animation
-      case 'R':
-        triggerAnimationAllStrips(RAINBOW);
+      }
+      case 'I':
+      {
+        triggerAnimationAllStrips(FADE_IN_OUT_BPM);
         break;
-
-      // trigger RAINBOW animation
-      case 'P':
+      }
+      case 'p':
+      {
         triggerAnimationAllStrips(PALETTE);
         break;
-
-      // trigger RAINBOW_W_GLITTER animation
-      case 'G':
-        triggerAnimationAllStrips(RAINBOW_W_GLITTER);
+      }
+      case 'g':
+      {
+        triggerAnimationAllStrips(PALETTE_W_GLITTER);
         break;
-
-      // trigger CONFETTI animation
-      case 'C':
+      }
+      case 'c':
+      {
         triggerAnimationAllStrips(CONFETTI);
         break;
-
-      // trigger SINELON animation
-      case 'S':
+      }
+      case 's':
+      {
         triggerAnimationAllStrips(SINELON);
         break;
-
-      // trigger SOLID_COLOR animation
-      case 'L':
+      }
+      case 'S':
+      {
         triggerAnimationAllStrips(SOLID_COLOR);
         break;
-    
+      }
+      case 'y':
+        {
+          uint8_t paletteIndex = random8(0,7);
+          CRGBPalette16 newColorPalette = ALL_COLOR_PALETTES[paletteIndex];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+
+      case 'z':
+        {
+          uint8_t newHue = random8();
+          uint8_t newBrightness = random8(30, 220);
+          uint8_t newBrightnessHigh = random8(150, 255);
+          uint8_t newBrightnessLow = random8(0, 50);
+          uint16_t newBPM = random16(60, 160);
+
+          Serial.println("************");
+          Serial.print("Hue: ");
+          Serial.println(newHue);
+          Serial.print("Brightness: ");
+          Serial.println(newBrightness);
+          Serial.print("bpm: ");
+          Serial.println(newBPM);
+          Serial.print("High: ");
+          Serial.println(newBrightnessHigh);
+          Serial.print("Low: ");
+          Serial.println(newBrightnessLow);
+          Serial.println("************");
+          
+          setAllStripParams(newHue, newBrightness, newBPM, newBrightnessHigh, newBrightnessLow);
+          break;
+        }
     }  // end of switch
     
   }
@@ -166,12 +216,36 @@ void triggerAnimationAllStrips(AnimationType animationToSet){
 
 }
 
-
-
-
 // this function blinks the onboard LED. The argument sets how long is the blink.
 void triggerLED(int blinkTime) {      
   digitalWrite(led, HIGH);            // turn the LED on (HIGH is the voltage level)
   delay(blinkTime);                   // wait for a second
   digitalWrite(led, LOW);             // turn the LED off by making the voltage LOW
+}
+
+
+
+// blink the onboard LED
+// update all the important parameters for the solid color and BPM based animations
+void setAllStripParams(uint8_t aHue, uint8_t aBrightness, uint16_t aBPM, uint8_t aBrightnessHigh, uint8_t aBrightnessLow){
+
+  triggerLED(100);
+
+  for(int i = 0; i < NUM_SEGMENTS; i++){
+    LedStripControllerArray[i]->SetStripParams( aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow);
+  }
+
+}
+
+
+
+// blink the onboard LED
+void setAllStripColorPalettes(CRGBPalette16 newColorPalette){
+
+  triggerLED(100);
+
+  for(int i = 0; i < NUM_SEGMENTS; i++){
+    LedStripControllerArray[i]->SetColorPalette( newColorPalette );
+  }
+
 }

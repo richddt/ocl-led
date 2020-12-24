@@ -14,13 +14,14 @@
   const int WHITE_COLOR = 255;   
   const uint16_t GLOBAL_BPM = 85;
 
+
   // ******************************************************************************************
   //    HARDWARE DEFINITION SELECT - 
   //        uncomment this line if you want to enable hardware definitions
   //        contained withint #if statement for __TURNERS_TESTING__
   //        otherwise the settings after #else will be used
   // ******************************************************************************************
-  #define __TURNERS_TESTING__
+  //#define __TURNERS_TESTING__
 
   
   // ******************************************************************************************
