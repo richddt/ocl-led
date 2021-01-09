@@ -4,7 +4,8 @@
 */
 
 #ifndef GlobalVariables_h
-#define GlobalVariables_h
+#define GlobalVariables_h  
+
   // ******************************************************************************************
   //    SHARED GLOBAL CONSTAND VARIABLES
   // ******************************************************************************************
@@ -18,10 +19,11 @@
   // ******************************************************************************************
   //    HARDWARE DEFINITION SELECT - 
   //        uncomment this line if you want to enable hardware definitions
-  //        contained withint #if statement for __TURNERS_TESTING__
+  //        contained withint #if statement for __TURNERS_TESTING_TEENSY__
   //        otherwise the settings after #else will be used
   // ******************************************************************************************
-  //#define __TURNERS_TESTING__
+  // #define __TURNERS_TESTING_TEENSY__
+  // #define __TURNERS_TESTING_UNO__
 
   
   // ******************************************************************************************
@@ -29,7 +31,7 @@
   // ******************************************************************************************
 
   // hardware definition for Turner's Testing setup  
-  #if defined(__TURNERS_TESTING__) //|| defined(__TK_TESTING_2__)
+  #if defined(__TURNERS_TESTING_TEENSY__) //|| defined(__TK_TESTING_2__)
     
     const int led = LED_BUILTIN;
 
@@ -41,6 +43,26 @@
     const int BLEN = 174;     //pixel count for StationB LED strip
     const int CLEN = 174;     //pixel count for StationC LED strip
   
+  // hardware definition for Turner's Testing setup  
+  #elif defined(__TURNERS_TESTING_UNO__) //|| defined(__TK_TESTING_2__)
+    
+    const int led = LED_BUILTIN;
+
+    const int APIN = 9;     //pin number for StationA LED strip
+    const int ALEN = 30;     //pixel count for StationA LED strip
+    
+    const int BPIN = 10;     // don't actually use this
+    const int BLEN = 30;     //pixel count for StationB LED strip
+
+    const int CPIN = 11;    // don't actually use this
+    const int CLEN = 30;    //standin pixel count for StationC LED strip
+
+
+    // BUTTON DEFINITIONS
+//    #define PRIMARY_BUTTON_PIN  2
+//    #define SECONDARY_BUTTON_PIN  3
+
+
   // the default settings to always fall back on
   #else
 
@@ -67,5 +89,13 @@
     #define FRAMES_PER_SECOND  60
   #endif
 
+
+  // *******  Helper macro for calculating the length of an array ******* 
+  // creates a macro that computes the length of an array (number of elements)
+  // assuming all of the elements are the same size as the element in position 0
+  #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+
+  // *******  Default Color Palette to use when instantiating LED Strip Controllers ******* 
+  const CRGBPalette16 DEFAULT_PALETTE = RainbowColors_p;
 
 #endif

@@ -12,6 +12,7 @@
 /////// INCLUDES ///////
 #include <FastLED.h>
 #include "LEDStripController.h"
+#include "GradientPalettes.h"
 
 /////// GLOBAL CONSTANTS ///////
 #define baudRate 9600   //this is a safe and common rate. Feel free to change it as desired. Justmake sure that Max and the Teensy are at the same setting.
@@ -31,10 +32,7 @@ CRGB aLEDs[ALEN];
 CRGB bLEDs[BLEN];
 CRGB cLEDs[CLEN];
 
-// Controller for each strip (to manage each strip array's state without blocking main thread)
 
-// //Simple non-segmented version
-//LEDStripController ALedStripController_1(aLEDs, ALEN);
 
 // Segmented version
 LEDStripController ALedStripController_1(aLEDs, 24, DEFAULT_PALETTE, !INVERT_STRIP, 0); // right side triangle
@@ -55,25 +53,42 @@ LEDStripController CLedStripController_3(cLEDs, 16, DEFAULT_PALETTE, INVERT_STRI
 LEDStripController CLedStripController_4(cLEDs, 24, DEFAULT_PALETTE, INVERT_STRIP, 24+32);  // left side triangle (inverted)
 
 
-const int NUM_SEGMENTS = 12;
 
 // Array of all controllers (to make it more efficient to update all of them at once)
-LEDStripController *LedStripControllerArray[NUM_SEGMENTS] = {  
-                                                              &ALedStripController_1,
-                                                              &ALedStripController_2, 
-                                                              &ALedStripController_3,
-                                                              &ALedStripController_4,
-                                                              &BLedStripController_1,
-                                                              &BLedStripController_2, 
-                                                              &BLedStripController_3,
-                                                              &BLedStripController_4,
-                                                              &CLedStripController_1,
-                                                              &CLedStripController_2, 
-                                                              &CLedStripController_3,
-                                                              &CLedStripController_4,
-                                                            };
+LEDStripController *LedStripControllerArray[] = {  
+                                                  &ALedStripController_1,
+                                                  &ALedStripController_2, 
+                                                  &ALedStripController_3,
+                                                  &ALedStripController_4,
+                                                  &BLedStripController_1,
+                                                  &BLedStripController_2, 
+                                                  &BLedStripController_3,
+                                                  &BLedStripController_4,
+                                                  &CLedStripController_1,
+                                                  &CLedStripController_2, 
+                                                  &CLedStripController_3,
+                                                  &CLedStripController_4,
+                                                };
 
 
+
+// *******  THE NUMBER OF SEGMENTS FROM OUR LedStripControllerArray  ******* 
+const int NUM_SEGMENTS = ARRAY_SIZE(LedStripControllerArray);
+
+
+
+// *******  COLOR PALETTE DEFINITIONS - Gradient Palettes defined in GradientPalettes.h ******* 
+const TProgmemRGBGradientPalettePtr COLOR_PALETTES[] = {
+                                                            tk_Rainbow_gp,
+                                                            tk_Forest_gp,
+                                                            tk_Party_gp,
+                                                            tk_Fire_Red_gp,
+                                                            tk_Peacock_Colors_gp,
+                                                            Analogous_1_gp,
+                                                        };
+
+
+const uint8_t NUM_COLOR_PALETTES = ARRAY_SIZE(COLOR_PALETTES);
 
 
 // *********************************************************************************
@@ -84,12 +99,10 @@ void setup() {
   pinMode(led, OUTPUT);     // initialize the digital pin as an output.
   Serial.begin(baudRate);     //initialize the host USB port.
 
-
   // THIS STEP SETS UP THE PHYSICAL REPRESENTATION OF OUR LED STRIPS
   FastLED.addLeds<NEOPIXEL, APIN>(aLEDs, ALEN);
-  FastLED.addLeds<NEOPIXEL, BPIN>(bLEDs, BLEN);
   FastLED.addLeds<NEOPIXEL, CPIN>(cLEDs, CLEN);
-
+  FastLED.addLeds<NEOPIXEL, BPIN>(bLEDs, BLEN);
 
   // set master brightness control from our global variable
   FastLED.setBrightness(fastLEDGlobalBrightness);
@@ -116,7 +129,7 @@ void loop() {
     //setAllStripParams(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow);
 
     // for color palette animations, you can use this one as well
-    CRGBPalette16 aColorPalette = RainbowColors_p; // the color palette that controls the colors for any of the palette controlled animations
+    CRGBPalette16 aColorPalette = tk_Rainbow_gp; // the color palette that controls the colors for any of the palette controlled animations
     //setAllStripColorPalettes(newColorPalette);
 
     switch (incomingByte) {
@@ -167,6 +180,7 @@ void loop() {
         // argument 4 sets the brightness the fade starts at
         // argument 5 sets the brightness the fade ends at  
         setAllStripParams(0, 0, aBPM, 255, 20);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        //setAllStripColorPalettes(tk_Fire_Red_gp);
         triggerAnimationAllStrips(PALETTE_FADE_LOW_BPM);
         break;
       }      
@@ -179,6 +193,7 @@ void loop() {
         // argument 4 sets the brightness the fade starts at
         // argument 5 sets the brightness the fade ends at
         setAllStripParams(0, 125, aBPM*2, 255, 20);
+        //setAllStripColorPalettes(Analogous_1_gp);
         triggerAnimationAllStrips(PALETTE_W_GLITTER_FADE_LOW_BPM);
         break;
       }      
@@ -199,8 +214,8 @@ void loop() {
       }
       case 'y':
         {
-          uint8_t paletteIndex = random8(0,7);
-          CRGBPalette16 newColorPalette = ALL_COLOR_PALETTES[paletteIndex];
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[paletteIndex];
 
           Serial.println("************");
           Serial.print("Palette: ");

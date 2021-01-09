@@ -37,18 +37,6 @@ enum AnimationType {
 };
 
 
-const CRGBPalette16 DEFAULT_PALETTE = RainbowColors_p;
-const CRGBPalette16 ALL_COLOR_PALETTES[8] = {
-                                                RainbowColors_p,
-                                                ForestColors_p,
-                                                CloudColors_p,
-                                                LavaColors_p,
-                                                OceanColors_p,
-                                                PartyColors_p,
-                                                HeatColors_p, // fire
-                                                RainbowStripeColors_p,
-                                              };
-
 // ******************************************************************
 //    UPDATE INTERVALS - the time in milliseconds between updates
 // ******************************************************************
