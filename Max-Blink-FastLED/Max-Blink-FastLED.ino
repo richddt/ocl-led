@@ -79,12 +79,13 @@ const int NUM_SEGMENTS = ARRAY_SIZE(LedStripControllerArray);
 
 // *******  COLOR PALETTE DEFINITIONS - Gradient Palettes defined in GradientPalettes.h ******* 
 const TProgmemRGBGradientPalettePtr COLOR_PALETTES[] = {
-                                                            tk_Rainbow_gp,
-                                                            tk_Forest_gp,
-                                                            tk_Party_gp,
-                                                            tk_Fire_Red_gp,
-                                                            tk_Peacock_Colors_gp,
-                                                            Analogous_1_gp,
+                                                            tk_Rainbow_gp,       //0
+                                                            tk_Forest_gp,        //1
+                                                            tk_Party_gp,         //2
+                                                            tk_Fire_Red_gp,      //3
+                                                            tk_Peacock_Colors_gp,//4
+                                                            Analogous_1_gp,      //5
+                                                            Sunset_Real_gp,      //6
                                                         };
 
 
@@ -250,6 +251,107 @@ void loop() {
           setAllStripParams(newHue, newBrightness, newBPM, newBrightnessHigh, newBrightnessLow);
           break;
         }
+
+ case '4':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[0];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+
+ case '1':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[1];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+        
+ case '2':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[2];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+
+ case '3':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[3];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+
+ case '4':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[4];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+        
+ case '5':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[5];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+        
+ case '6':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[6];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }
+
+
+        
     }  // end of switch
     
   }

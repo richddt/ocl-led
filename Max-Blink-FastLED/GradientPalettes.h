@@ -129,8 +129,22 @@ DEFINE_GRADIENT_PALETTE( tk_Fire_Candle_gp ) {
   197, 220,105,  5,
   240, 252,255, 31,
   250, 252,255,111,
-  255, 255,255,255
-};
+  255, 255,255,255};
+
+
+// Gradient palette "Sunset_Real_gp", originally from
+// http://soliton.vm.bytemark.co.uk/pub/cpt-city/nd/atmospheric/tn/Sunset_Real.png.index.html
+// converted for FastLED with gammas (2.6, 2.2, 2.5)
+// Size: 28 bytes of program space.
+DEFINE_GRADIENT_PALETTE( Sunset_Real_gp ) {
+    0, 120,  0,  0,
+   22, 179, 22,  0,
+   51, 255,104,  0,
+   85, 167, 22, 18,
+  135, 100,  0,103,
+  198,  16,  0,130,
+  255,   0,  0,160};
+
 
 
 
