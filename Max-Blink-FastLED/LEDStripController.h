@@ -72,6 +72,8 @@ class LEDStripController
     void SetActiveAnimationType(AnimationType newAnimationState);
     void SetStripParams(uint8_t hue, uint8_t brightness, uint16_t bpm, uint8_t brightnessHigh, uint8_t brightnessLow);
     void SetColorPalette(CRGBPalette16 colorPalette);
+    void SetStripHueIndexBPM(uint16_t hueIndexBPM);
+    void ReverseStripHueIndexDirection();
     
     
     
@@ -95,6 +97,8 @@ class LEDStripController
     uint8_t _brightnessHigh = BRIGHTNESS_FULL;
     uint8_t _brightnessLow = 40;
     uint16_t _bpm = GLOBAL_BPM;
+    uint16_t _hueIndexBPM = GLOBAL_BPM;
+    uint8_t _reverseHueIndexDirection = false;
   
     // mutable variables that help manage the state of parameters used in specific animations
     uint32_t _bsTimebase = 0;
@@ -124,6 +128,12 @@ class LEDStripController
     void AddGlitter( fract8 chanceOfGlitter, uint8_t brightness = 255);
     void Confetti();
     void Sinelon();
+
+
+    // CLAS HELPER FUNCTIONS
+    uint8_t getHueIndex(uint8_t hueIndexBPM);
+    // uint8_t getHueIndex(uint8_t hueIndexBPM, uint8_t reverseDirecton = false);
+
 
 };
 

@@ -170,6 +170,18 @@ void LEDStripController::SetColorPalette(CRGBPalette16 colorPalette){
 
 
 
+void LEDStripController::SetStripHueIndexBPM(uint16_t hueIndexBPM){
+  _hueIndexBPM = hueIndexBPM;
+}
+
+
+
+void LEDStripController::ReverseStripHueIndexDirection(){
+  _reverseHueIndexDirection = !_reverseHueIndexDirection;
+}
+
+
+
 
 
 // *********************************************************************************
@@ -304,17 +316,8 @@ void LEDStripController::FadeInOutBPM() {
 // a simple function for creating an animated color palettes
 void LEDStripController::Palette()
 {
-
-  // increment the _paletteHue position on every update so the colors "move"
-  // if the strip is inverted "move" in the opposite direction 
-  if(_invertStrip){
-      _paletteHue++;
-  }
-  else{
-      _paletteHue--;
-  }
   
-  fill_palette( _leds, _stripLength, _paletteHue, 7, _colorPalette, _brightness, LINEARBLEND);
+  fill_palette( _leds, _stripLength, getHueIndex( _hueIndexBPM ), (256 / _stripLength), _colorPalette, _brightness, LINEARBLEND);
 }
 
 
@@ -337,15 +340,6 @@ void LEDStripController::AddGlitter( fract8 chanceOfGlitter, uint8_t brightness)
 // combining the FadeLowBPM and Palette functions
 void LEDStripController::PaletteFadeLowBPM() {
 
-  // increment the _paletteHue position on every update so the colors "move"
-  // if the strip is inverted "move" in the opposite direction 
-  if(_invertStrip){
-      _paletteHue++;
-  }
-  else{
-      _paletteHue--;
-  }
-
   // we divide the _bpm by 2 because we are only using half of the saw wave (from 255 to 0)
   // set the low value to 0 and high to _brightnessHigh
   // set _bsTimebase reference to now so that the wave reference always starts at 0
@@ -357,10 +351,10 @@ void LEDStripController::PaletteFadeLowBPM() {
   // we need to disable the animation once the brightnes drops below a certain threshold
   // as well as set the brightnes to 0 (or whatever value we want to stop it at)
   if(brightness > _brightnessLow && brightness > 5 && _showStrip){ // MAGIC NUMBER ALERT!!!
-    fill_palette( _leds, _stripLength, _paletteHue, 7, _colorPalette, brightness, LINEARBLEND);
+    fill_palette( _leds, _stripLength, getHueIndex( _hueIndexBPM ), (256 / _stripLength), _colorPalette, brightness, LINEARBLEND);
   }
   else {
-    fill_palette( _leds, _stripLength, _paletteHue, 7, _colorPalette, _brightnessLow, LINEARBLEND);
+    fill_palette( _leds, _stripLength, getHueIndex( _hueIndexBPM ), (256 / _stripLength), _colorPalette, _brightnessLow, LINEARBLEND);
     _showStrip = false;      
   }
   
@@ -415,8 +409,31 @@ void LEDStripController::Sinelon(){
   int pos = beatsin16( _bpm / 2, 0, _stripLength - 1 , _bsTimebase, 65536 / 4);  
   
   // add the palette color to the led at pos
-  _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue++, _brightness);
+  _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue, _brightness);
 
   //_leds[pos] += CHSV( _paletteHue, SATURATION_FULL, _brightness);
 
+}
+
+
+
+
+
+
+
+// *********************************************************************************
+//      CLASS HELPER FUNCTIONS
+// *********************************************************************************
+
+// get the next hue based on the bpm and if the strip is inverted or not
+// uint8_t LEDStripController::getHueIndex(uint8_t hueIndexBPM, uint8_t reverseDirecton){
+uint8_t LEDStripController::getHueIndex(uint8_t hueIndexBPM){
+
+    // XOR logic
+    if(_reverseHueIndexDirection != _invertStrip){
+        return beat8(hueIndexBPM);  // leds appear to be moving reverse
+    }
+    else {
+        return 255 - beat8(hueIndexBPM);  // leds appear to be moving forward
+    }    
 }

@@ -32,9 +32,17 @@ CRGB aLEDs[ALEN];
 CRGB bLEDs[BLEN];
 CRGB cLEDs[CLEN];
 
+#if defined(__TURNERS_TESTING_TEENSY__) || defined(__TURNERS_TESTING_UNO__)
+  // Simple non-segmented version for testing
+  LEDStripController ALedStripController_1(aLEDs, ALEN);
 
+  // Array of all controllers (to make it more efficient to update all of them at once)
+  LEDStripController *LedStripControllerArray[] = {  
+                                                    &ALedStripController_1
+                                                  };  
 
-// Segmented version
+#else
+// Segmented version for production
 LEDStripController ALedStripController_1(aLEDs, 24, DEFAULT_PALETTE, !INVERT_STRIP, 0); // right side triangle
 LEDStripController ALedStripController_2(aLEDs, 16, DEFAULT_PALETTE, !INVERT_STRIP, 24); // top big triangle
 LEDStripController ALedStripController_3(aLEDs, 16, DEFAULT_PALETTE, INVERT_STRIP, 24+16); // top big triangle (inverted)
@@ -69,7 +77,7 @@ LEDStripController *LedStripControllerArray[] = {
                                                   &CLedStripController_3,
                                                   &CLedStripController_4,
                                                 };
-
+#endif
 
 
 // *******  THE NUMBER OF SEGMENTS FROM OUR LedStripControllerArray  ******* 
@@ -102,8 +110,13 @@ void setup() {
 
   // THIS STEP SETS UP THE PHYSICAL REPRESENTATION OF OUR LED STRIPS
   FastLED.addLeds<NEOPIXEL, APIN>(aLEDs, ALEN);
+
+#if defined(__TURNERS_TESTING_TEENSY__) || defined(__TURNERS_TESTING_UNO__)
+  // don't add more strips if we're testing
+#else
   FastLED.addLeds<NEOPIXEL, CPIN>(cLEDs, CLEN);
   FastLED.addLeds<NEOPIXEL, BPIN>(bLEDs, BLEN);
+#endif
 
   // set master brightness control from our global variable
   FastLED.setBrightness(fastLEDGlobalBrightness);
@@ -252,7 +265,7 @@ void loop() {
           break;
         }
 
- case '4':
+ case '0':
         {
           uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
           CRGBPalette16 newColorPalette = COLOR_PALETTES[0];
@@ -349,6 +362,43 @@ void loop() {
           setAllStripColorPalettes(newColorPalette);
           break;
         }
+ case '7':
+        {
+
+          Serial.println("************");
+          Serial.println("reversing hue index direction");
+          Serial.println("************");
+
+          // reverses the direction of the palette movement across the strip
+          reverseAllStripHueIndexDirections();
+          break;
+        }
+ case '8':
+        {
+          // sets the BPM of the color palette speed to aBPM
+          uint16_t hueIndexBPM = aBPM;
+
+          Serial.println("************");
+          Serial.print("BPM: ");
+          Serial.println(hueIndexBPM);
+          Serial.println("************");
+
+          setAllStripHueIndexBPMs(hueIndexBPM);
+          break;
+        }
+ case '9':
+        {
+          // sets the BPM of the color palette speed to half of aBPM
+          uint16_t hueIndexBPM = aBPM / 2;
+
+          Serial.println("************");
+          Serial.print("BPM: ");
+          Serial.println(hueIndexBPM);
+          Serial.println("************");
+
+          setAllStripHueIndexBPMs(hueIndexBPM);
+          break;
+        }
 
 
         
@@ -425,6 +475,34 @@ void setAllStripColorPalettes(CRGBPalette16 newColorPalette){
   }
 
 }
+
+
+// blink the onboard LED
+void setAllStripHueIndexBPMs(uint16_t hueIndexBPM){
+
+  turnTeensyLEDOn();
+
+  for(int i = 0; i < NUM_SEGMENTS; i++){
+    LedStripControllerArray[i]->SetStripHueIndexBPM( hueIndexBPM );
+  }
+
+}
+
+
+// reverse the hue directions and blink the onboard LED
+void reverseAllStripHueIndexDirections(){
+
+  turnTeensyLEDOn();
+
+  for(int i = 0; i < NUM_SEGMENTS; i++){
+    LedStripControllerArray[i]->ReverseStripHueIndexDirection();
+  }
+
+}
+
+
+
+
 
 
 // this turns on the Teensy LED and tells our program to turn it off in 500 ms
