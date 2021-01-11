@@ -135,7 +135,8 @@ void loop() {
     // you now have control over these parameters for each strip
     uint8_t aHue = 90;              // the hue/color of the strip for all animations other than the palette controlled animations. 0 (red) - 255 (end spectrum red)
     uint8_t aBrightness = 255;      // the brightness of the strip for all animations INCLUDING palette controlled animations
-    uint16_t aBPM = 85;             // the speed of the animation in BPM for any of the "Fade" animations
+    uint16_t aBPM = 85;             // the speed of the Brightness shifting animation in BPM for any of the "Fade" animations
+    uint16_t aPalSpeed = 85;        // the speed of the Palette movement animation in BPM for any of the "Fade" animations
     uint8_t aBrightnessHigh = 255;  // the top level of brightness for any of the "Fade" animations
     uint8_t aBrightnessLow = 80;    // the bottom level of brightness for any of the "Fade" animations; colors below ~30 are very inaccurate
 
@@ -194,8 +195,12 @@ void loop() {
         // argument 4 sets the brightness the fade starts at
         // argument 5 sets the brightness the fade ends at  
         setAllStripParams(0, 0, aBPM, 255, 20);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
-        //setAllStripColorPalettes(tk_Fire_Red_gp);
-        triggerAnimationAllStrips(PALETTE_FADE_LOW_BPM);
+        //setAllStripParams(0, 0, aBPM, 140, 20);  // Lowered brightness version for non-1 beats
+        //setAllStripColorPalettes(tk_Fire_Red_gp); // Switch to an arbitraty new Palette
+        setAllStripHueIndexBPMs(10); // this is the call to change the Palette scroll speed in BPM
+        //reverseAllStripHueIndexDirections(); // reverses Palette scroll direction with every Pulse
+        triggerAnimationAllStrips(PALETTE_FADE_LOW_BPM); // Call the Animation using ENUM name
+        //triggerAnimationAllStrips(DDT_EXPERIMENTAL); // experiments with waves
         break;
       }      
       case 'G':
@@ -213,11 +218,13 @@ void loop() {
       }      
       case 'c':
       {
+        setAllStripParams(0, 255, 60, 255, 20); // 3rd variable aBPM is closest thing to a Speed control; max is 255, default is 60
         triggerAnimationAllStrips(CONFETTI);
         break;
       }
       case 's':
       {
+        setAllStripParams(0, 255, aBPM, 255, 20);  // aBPM is speed of Sinelon animation
         triggerAnimationAllStrips(SINELON);
         break;
       }
@@ -226,6 +233,25 @@ void loop() {
         triggerAnimationAllStrips(SOLID_COLOR);
         break;
       }
+
+      case 'x':
+      {
+        // for this animation, (PALETTE_FADE_LOW_BPM)
+        // argument 1 does nothing so we set to 0 (normally hue)
+        // argument 1 does nothing so we set to 0 (normally brightness)
+        // argument 3 sets the speed of the fade in BPM
+        // argument 4 sets the brightness the fade starts at
+        // argument 5 sets the brightness the fade ends at  
+        setAllStripParams(0, 255, aBPM, 255, 20);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        //setAllStripParams(0, 0, aBPM, 140, 20);  // Lowered brightness version for non-1 beats
+        //setAllStripColorPalettes(tk_Fire_Red_gp); // Switch to an arbitraty new Palette
+        setAllStripHueIndexBPMs(10); // this is the call to change the Palette scroll speed in BPM
+        //reverseAllStripHueIndexDirections(); // reverses Palette scroll direction with every Pulse
+        //triggerAnimationAllStrips(PALETTE_FADE_LOW_BPM); // Call the Animation using ENUM name
+        triggerAnimationAllStrips(DDT_EXPERIMENTAL); // experiments with waves
+        break;
+      }      
+      
       case 'y':
         {
           uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
@@ -375,21 +401,21 @@ void loop() {
         }
  case '8':
         {
-          // sets the BPM of the color palette speed to aBPM
-          uint16_t hueIndexBPM = aBPM;
+          // sets the BPM of the color palette speed to aPalSpeed
+          uint16_t hueIndexBPM = aPalSpeed;
 
           Serial.println("************");
           Serial.print("BPM: ");
           Serial.println(hueIndexBPM);
           Serial.println("************");
 
-          setAllStripHueIndexBPMs(hueIndexBPM);
+          setAllStripHueIndexBPMs(hueIndexBPM); // this is the call to change the Palette scroll speed in BPM
           break;
         }
  case '9':
         {
-          // sets the BPM of the color palette speed to half of aBPM
-          uint16_t hueIndexBPM = aBPM / 2;
+          // sets the BPM of the color palette speed to half of aPalSpeed
+          uint16_t hueIndexBPM = aPalSpeed / 2;
 
           Serial.println("************");
           Serial.print("BPM: ");

@@ -21,7 +21,7 @@
 // ******************************************************************
 //    ANIMATION TYPES ENUM -- This makes it easy to change animations
 // ******************************************************************
-enum AnimationType {
+enum AnimationType { //add all new animation names here for human-readable format
   ALL_OFF,
   SOLID_COLOR,
   FADE_OUT_BPM,
@@ -32,7 +32,8 @@ enum AnimationType {
   PALETTE_FADE_LOW_BPM,
   PALETTE_W_GLITTER_FADE_LOW_BPM,
   CONFETTI,
-  SINELON,  
+  SINELON,
+  DDT_EXPERIMENTAL,  
   NONE
 };
 
@@ -128,6 +129,7 @@ class LEDStripController
     void AddGlitter( fract8 chanceOfGlitter, uint8_t brightness = 255);
     void Confetti();
     void Sinelon();
+    void DDT_Experimental();
 
 
     // CLAS HELPER FUNCTIONS

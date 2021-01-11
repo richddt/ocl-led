@@ -35,7 +35,7 @@ LEDStripController::LEDStripController( CRGB *leds,
 //      MAIN UPDATE FUNCTION
 // *********************************************************************************
 
-void LEDStripController::Update(uint32_t currentTime) {
+void LEDStripController::Update(uint32_t currentTime) { //keep this list sync'd with LEDStripController.h ANIMATION TYPES ENUM
 
   if( currentTime > _timeToUpdate ){
     switch(_activeAnimationType) {
@@ -71,6 +71,9 @@ void LEDStripController::Update(uint32_t currentTime) {
         break;
       case SINELON:
         Sinelon();
+        break;
+      case DDT_EXPERIMENTAL:
+        DDT_Experimental();
         break;
       case NONE:
         break;
@@ -127,6 +130,7 @@ void LEDStripController::InitializeAnimation() {
       //_paletteHue = 0;
       _updateInterval = PALETTE_UPDATE_INTERVAL;
       break;
+    case DDT_EXPERIMENTAL:
     case PALETTE_FADE_LOW_BPM:
     case PALETTE_W_GLITTER_FADE_LOW_BPM:
       _showStrip = true;
@@ -355,7 +359,7 @@ void LEDStripController::PaletteFadeLowBPM() {
   }
   else {
     fill_palette( _leds, _stripLength, getHueIndex( _hueIndexBPM ), (256 / _stripLength), _colorPalette, _brightnessLow, LINEARBLEND);
-    _showStrip = false;      
+    _showStrip = false;
   }
   
 
@@ -377,15 +381,16 @@ void LEDStripController::PaletteWithGlitterFadeLowBPM() {
 void LEDStripController::Confetti() {
   
   // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( _leds, _stripLength, 20); // MAGIC NUMBER ALERT!!!
-  uint16_t pos = random16(_stripLength);  
+  fadeToBlackBy( _leds, _stripLength, 10); // MAGIC NUMBER ALERT!!! 20 is the speed of the brightness fade, smaller = longer fade
+  uint16_t pos = random16(_stripLength);
   //int pos = random16(_stripLength);
   
   _paletteHue++;
   // if you want to draw from a palette use this method
   //_leds[pos] += ColorFromPalette( _colorPalette, random8(), _brightness);
-  _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue + random8(64), _brightness);
-  
+  if (random8()<_bpm){  // probability control for how many LED's pop simultaneously. Dependent on processor speed & LED count. Default = 180 out of 255
+    _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue + random8(64), _brightness);
+  }
   // here's an alternate method
   //_paletteHue++;
   //_leds[pos] += CHSV( _paletteHue + random8(64), 200, 255);
@@ -416,7 +421,22 @@ void LEDStripController::Sinelon(){
 }
 
 
-
+// experiments with Waves animation (similar to Sinelon)
+void LEDStripController::DDT_Experimental(){
+  // random colored speckles that blink in and fade smoothly
+  fadeToBlackBy( _leds, _stripLength, 20); // MAGIC NUMBER ALERT!!!
+  uint16_t pos = random16(_stripLength);  
+  //int pos = random16(_stripLength);
+  
+  _paletteHue++;
+  // if you want to draw from a palette use this method
+  //_leds[pos] += ColorFromPalette( _colorPalette, random8(), _brightness);
+  _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue + random8(64), _brightness);
+  
+  // here's an alternate method
+  //_paletteHue++;
+  //_leds[pos] += CHSV( _paletteHue + random8(64), 200, 255);
+}
 
 
 
