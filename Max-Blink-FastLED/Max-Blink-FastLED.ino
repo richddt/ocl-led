@@ -87,13 +87,16 @@ const int NUM_SEGMENTS = ARRAY_SIZE(LedStripControllerArray);
 
 // *******  COLOR PALETTE DEFINITIONS - Gradient Palettes defined in GradientPalettes.h ******* 
 const TProgmemRGBGradientPalettePtr COLOR_PALETTES[] = {
-                                                            tk_Rainbow_gp,       //0
-                                                            tk_Forest_gp,        //1
-                                                            tk_Party_gp,         //2
-                                                            tk_Fire_Red_gp,      //3
-                                                            tk_Peacock_Colors_gp,//4
-                                                            Analogous_1_gp,      //5
-                                                            Sunset_Real_gp,      //6
+                                                            tk_Rainbow_gp,       //0  
+                                                            tk_Fire_Red_gp,      //1
+                                                            Analogous_1_gp,      //2
+                                                            Sunset_Real_gp,      //3
+                                                            Shade4,              //4
+                                                            Shade5,              //5
+                                                            Shade6,              //6
+                                                            Shade7,              //7
+                                                            Shade8,              //8
+                                                            Shade9,              //9
                                                         };
 
 
@@ -153,42 +156,74 @@ void loop() {
         triggerAnimationAllStrips(ALL_OFF);
         break;
       }
+
       case 'O':
       {
         triggerAnimationAllStrips(FADE_OUT_BPM);
         break;
       }
 
+
+      case 'A':
+      {
+        triggerAnimationAllStrips(SOLID_COLOR);
+        break;
+      }
+
       case 'b':
+      {
+        setAllStripParams(160, 255, aBPM, 150, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        triggerAnimationAllStrips(FADE_LOW_BPM);
+        break;
+      }
+      
+      case 'B':
       {
         setAllStripParams(160, 255, aBPM, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }
-      case 'L':
+      
+      case 'E':
       {      
         setAllStripParams(160, 255, aBPM*2, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }
-      case 'I':
+      
+      case 'N':
       {
         triggerAnimationAllStrips(FADE_IN_OUT_BPM);
         break;
       }
-      case 'p':
+
+      case 'i':
       {
         triggerAnimationAllStrips(PALETTE);
         break;
       }
-      case 'g':
+
+      case 'p':
       {
-        triggerAnimationAllStrips(PALETTE_W_GLITTER);
+        // for this animation, (PALETTE_FADE_LOW_BPM) - DIMMER
+        // argument 1 does nothing so we set to 0 (normally hue)
+        // argument 1 does nothing so we set to 0 (normally brightness)
+        // argument 3 sets the speed of the fade in BPM
+        // argument 4 sets the brightness the fade starts at
+        // argument 5 sets the brightness the fade ends at  
+        setAllStripParams(0, 0, aBPM, 150, 20);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        //setAllStripParams(0, 0, aBPM, 140, 20);  // Lowered brightness version for non-1 beats
+        //setAllStripColorPalettes(tk_Fire_Red_gp); // Switch to an arbitraty new Palette
+        setAllStripHueIndexBPMs(10); // this is the call to change the Palette scroll speed in BPM
+        //reverseAllStripHueIndexDirections(); // reverses Palette scroll direction with every Pulse
+        triggerAnimationAllStrips(PALETTE_FADE_LOW_BPM); // Call the Animation using ENUM name
+        //triggerAnimationAllStrips(DDT_EXPERIMENTAL); // experiments with waves
         break;
-      }
+      }      
+      
       case 'P':
       {
-        // for this animation, (PALETTE_FADE_LOW_BPM)
+        // for this animation, (PALETTE_FADE_LOW_BPM) - BRIGHTER
         // argument 1 does nothing so we set to 0 (normally hue)
         // argument 1 does nothing so we set to 0 (normally brightness)
         // argument 3 sets the speed of the fade in BPM
@@ -203,34 +238,46 @@ void loop() {
         //triggerAnimationAllStrips(DDT_EXPERIMENTAL); // experiments with waves
         break;
       }      
-      case 'G':
+
+      case 'g':
       {
-        // for this animation, (PALETTE_W_GLITTER_FADE_LOW_BPM)
+        // for this animation, (PALETTE_W_GLITTER_FADE_LOW_BPM) - DIMMER
         // argument 1 does nothing so we set to 0 (normally hue)
         // argument 2 sets the brightness of the glitter pops
         // argument 3 sets the speed of the fade in BPM
         // argument 4 sets the brightness the fade starts at
         // argument 5 sets the brightness the fade ends at
-        setAllStripParams(0, 125, aBPM*2, 255, 20);
+        setAllStripParams(0, 125, aBPM*2, 150, 20);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         //setAllStripColorPalettes(Analogous_1_gp);
         triggerAnimationAllStrips(PALETTE_W_GLITTER_FADE_LOW_BPM);
         break;
       }      
-      case 'c':
+      
+      case 'G':
+      {
+        // for this animation, (PALETTE_W_GLITTER_FADE_LOW_BPM) - BRIGHTER
+        // argument 1 does nothing so we set to 0 (normally hue)
+        // argument 2 sets the brightness of the glitter pops
+        // argument 3 sets the speed of the fade in BPM
+        // argument 4 sets the brightness the fade starts at
+        // argument 5 sets the brightness the fade ends at
+        setAllStripParams(0, 125, aBPM*2, 255, 20);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        //setAllStripColorPalettes(Analogous_1_gp);
+        triggerAnimationAllStrips(PALETTE_W_GLITTER_FADE_LOW_BPM);
+        break;
+      }      
+
+      case 'C':
       {
         setAllStripParams(0, 255, 60, 255, 20); // 3rd variable aBPM is closest thing to a Speed control; max is 255, default is 60
         triggerAnimationAllStrips(CONFETTI);
         break;
       }
-      case 's':
+
+      case 'S':
       {
         setAllStripParams(0, 255, aBPM, 255, 20);  // aBPM is speed of Sinelon animation
         triggerAnimationAllStrips(SINELON);
-        break;
-      }
-      case 'S':
-      {
-        triggerAnimationAllStrips(SOLID_COLOR);
         break;
       }
 
@@ -388,7 +435,51 @@ void loop() {
           setAllStripColorPalettes(newColorPalette);
           break;
         }
+
  case '7':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[7];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }        
+
+ case '8':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[8];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }       
+
+ case '9':
+        {
+          uint8_t paletteIndex = random8( NUM_COLOR_PALETTES );
+          CRGBPalette16 newColorPalette = COLOR_PALETTES[9];
+
+          Serial.println("************");
+          Serial.print("Palette: ");
+          Serial.println(paletteIndex);
+          Serial.println("************");
+
+          setAllStripColorPalettes(newColorPalette);
+          break;
+        }       
+  
+        
+ case 'R':
         {
 
           Serial.println("************");
@@ -399,7 +490,8 @@ void loop() {
           reverseAllStripHueIndexDirections();
           break;
         }
- case '8':
+        
+ case 'D':
         {
           // sets the BPM of the color palette speed to aPalSpeed
           uint16_t hueIndexBPM = aPalSpeed;
@@ -412,7 +504,7 @@ void loop() {
           setAllStripHueIndexBPMs(hueIndexBPM); // this is the call to change the Palette scroll speed in BPM
           break;
         }
- case '9':
+ case 'd':
         {
           // sets the BPM of the color palette speed to half of aPalSpeed
           uint16_t hueIndexBPM = aPalSpeed / 2;
