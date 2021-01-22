@@ -136,7 +136,7 @@ void loop() {
     incomingByte = Serial.read();   // read incoming byte
     
     // you now have control over these parameters for each strip
-    uint8_t aHue = 90;              // the hue/color of the strip for all animations other than the palette controlled animations. 0 (red) - 255 (end spectrum red)
+    uint8_t aHue = 176;              // the hue/color of the strip for all animations other than the palette controlled animations. 0 (red) - 255 (end spectrum red)
     uint8_t aBrightness = 255;      // the brightness of the strip for all animations INCLUDING palette controlled animations
     uint16_t aBPM = 85;             // the speed of the Brightness shifting animation in BPM for any of the "Fade" animations
     uint16_t aPalSpeed = 85;        // the speed of the Palette movement animation in BPM for any of the "Fade" animations
@@ -172,21 +172,21 @@ void loop() {
 
       case 'b':
       {
-        setAllStripParams(160, 255, aBPM, 150, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        setAllStripParams(176, 255, aBPM, 150, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }
       
       case 'B':
       {
-        setAllStripParams(160, 255, aBPM, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        setAllStripParams(176, 255, aBPM, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }
       
       case 'E':
       {      
-        setAllStripParams(160, 255, aBPM*2, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
+        setAllStripParams(176, 255, aBPM*2, 255, 90);  //(aHue, aBrightness, aBPM, aBrightnessHigh, aBrightnessLow)
         triggerAnimationAllStrips(FADE_LOW_BPM);
         break;
       }
