@@ -32,14 +32,18 @@ CRGB aLEDs[ALEN];
 CRGB bLEDs[BLEN];
 CRGB cLEDs[CLEN];
 
-#if defined(__TURNERS_TESTING_TEENSY__) || defined(__TURNERS_TESTING_UNO__)
+#if defined(__TURNERS_TESTING_UNO__) || defined(__TURNERS_TESTING_TEENSY__)
   // Simple non-segmented version for testing
-  LEDStripController ALedStripController_1(aLEDs, ALEN);
+  //LEDStripController ALedStripController_1(aLEDs, ALEN);
+  LEDStripController ALedStripController_1(aLEDs, ALEN,DEFAULT_PALETTE, !INVERT_STRIP);
 
   // Array of all controllers (to make it more efficient to update all of them at once)
   LEDStripController *LedStripControllerArray[] = {  
                                                     &ALedStripController_1
                                                   };  
+
+  const int sideTriangleStripIndexes[] = { 0 };
+  const int topTriangleStripIndexes[] = { 0 };
 
 #else
 // Segmented version for production
@@ -77,7 +81,13 @@ LEDStripController *LedStripControllerArray[] = {
                                                   &CLedStripController_3,
                                                   &CLedStripController_4,
                                                 };
+
+const int sideTriangleStripIndexes[] = {0, 3, 4, 7, 8, 11};
+const int topTriangleStripIndexes[] = {1, 2, 5, 6, 9, 10};
+                                                
 #endif
+
+
 
 
 // *******  THE NUMBER OF SEGMENTS FROM OUR LedStripControllerArray  ******* 
@@ -114,8 +124,13 @@ void setup() {
   // THIS STEP SETS UP THE PHYSICAL REPRESENTATION OF OUR LED STRIPS
   FastLED.addLeds<NEOPIXEL, APIN>(aLEDs, ALEN);
 
-#if defined(__TURNERS_TESTING_TEENSY__) || defined(__TURNERS_TESTING_UNO__)
-  // don't add more strips if we're testing
+#if defined(__TURNERS_TESTING_UNO__)
+  pinMode(PRIMARY_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(ONBOARD_PRIMARY_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(SECONDARY_BUTTON_PIN, INPUT_PULLUP);
+
+#elif defined(__TURNERS_TESTING_TEENSY__)
+  // don't add more strips if we're testing  
 #else
   FastLED.addLeds<NEOPIXEL, CPIN>(cLEDs, CLEN);
   FastLED.addLeds<NEOPIXEL, BPIN>(bLEDs, BLEN);
@@ -280,7 +295,22 @@ void loop() {
         triggerAnimationAllStrips(SINELON);
         break;
       }
+      case 's':
+      {
+        setAllStripParams(0, 255, aBPM, 255, 20);  // aBPM is speed of Sinelon animation
 
+        triggerAnimationSideTriangleStrips(SINEPULSE);
+       
+        break;
+      }
+      case 't':
+      {
+        setAllStripParams(0, 255, aBPM*3, 255, 20);  // aBPM is speed of Sinelon animation
+
+        triggerAnimationTopTriangleStrips(SINEPULSE);
+        
+        break;
+      }      
       case 'x':
       {
         // for this animation, (PALETTE_FADE_LOW_BPM)
@@ -567,6 +597,32 @@ void triggerAnimationAllStrips(AnimationType animationToSet){
   }
 
 }
+
+
+void triggerAnimationSideTriangleStrips(AnimationType animationToSet){
+
+  turnTeensyLEDOn();
+  
+  for(int i = 0; i < ARRAY_SIZE(sideTriangleStripIndexes); i++){
+    int sideTriangleIndex = sideTriangleStripIndexes[i];
+        
+    LedStripControllerArray[sideTriangleIndex]->SetActiveAnimationType( animationToSet );
+  }
+
+}
+
+
+void triggerAnimationTopTriangleStrips(AnimationType animationToSet){
+
+  turnTeensyLEDOn();
+
+  for(int i = 0; i < ARRAY_SIZE(topTriangleStripIndexes); i++){
+    int topTriangleIndex = topTriangleStripIndexes[i];
+        
+    LedStripControllerArray[topTriangleIndex]->SetActiveAnimationType( animationToSet );
+  }
+}
+
 
 
 // blink the onboard LED

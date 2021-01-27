@@ -23,7 +23,7 @@
   //        otherwise the settings after #else will be used
   // ******************************************************************************************
   // #define __TURNERS_TESTING_TEENSY__
-  // #define __TURNERS_TESTING_UNO__
+//   #define __TURNERS_TESTING_UNO__
 
   
   // ******************************************************************************************
@@ -31,7 +31,32 @@
   // ******************************************************************************************
 
   // hardware definition for Turner's Testing setup  
-  #if defined(__TURNERS_TESTING_TEENSY__) //|| defined(__TK_TESTING_2__)
+
+  
+  // hardware definition for Turner's Testing setup  
+  #if defined(__TURNERS_TESTING_UNO__) 
+    
+    const int led = LED_BUILTIN;
+
+    const int APIN = 13;     //pin number for StationA LED strip
+    const int ALEN = 30;     //pixel count for StationA LED strip
+    
+    const int BPIN = 9;     // don't actually use this
+    const int BLEN = 30;     //pixel count for StationB LED strip
+
+    //const int CPIN = 11;    // don't actually use this
+    const int CLEN = 30;    //standin pixel count for StationC LED strip
+
+    // BUTTON DEFINITIONS
+    #define PRIMARY_BUTTON_PIN  11   // has PWM
+
+    // this is the button sodered directly to the blinkytape
+    #define ONBOARD_PRIMARY_BUTTON_PIN  10   // has PWM
+
+    // this is the second button used mostly for color changes
+    #define SECONDARY_BUTTON_PIN  7      // does NOT have PWM
+
+  #elif defined(__TURNERS_TESTING_TEENSY__)
     
     const int led = LED_BUILTIN;
 
@@ -42,26 +67,6 @@
     const int ALEN = 30;     //pixel count for StationA LED strip
     const int BLEN = 174;     //pixel count for StationB LED strip
     const int CLEN = 174;     //pixel count for StationC LED strip
-  
-  // hardware definition for Turner's Testing setup  
-  #elif defined(__TURNERS_TESTING_UNO__) //|| defined(__TK_TESTING_2__)
-    
-    const int led = LED_BUILTIN;
-
-    const int APIN = 9;     //pin number for StationA LED strip
-    const int ALEN = 30;     //pixel count for StationA LED strip
-    
-    const int BPIN = 10;     // don't actually use this
-    const int BLEN = 30;     //pixel count for StationB LED strip
-
-    const int CPIN = 11;    // don't actually use this
-    const int CLEN = 30;    //standin pixel count for StationC LED strip
-
-
-    // BUTTON DEFINITIONS
-//    #define PRIMARY_BUTTON_PIN  2
-//    #define SECONDARY_BUTTON_PIN  3
-
 
   // the default settings to always fall back on
   #else

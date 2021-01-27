@@ -33,6 +33,7 @@ enum AnimationType { //add all new animation names here for human-readable forma
   PALETTE_W_GLITTER_FADE_LOW_BPM,
   CONFETTI,
   SINELON,
+  SINEPULSE,
   DDT_EXPERIMENTAL,  
   NONE
 };
@@ -46,6 +47,7 @@ enum AnimationType { //add all new animation names here for human-readable forma
 #define PALETTE_UPDATE_INTERVAL 5
 #define CONFETTI_UPDATE_INTERVAL 10
 #define SINELON_UPDATE_INTERVAL 10
+#define SINEPULSE_UPDATE_INTERVAL 10
 
 
 // this will set whether or not the strip is inverted
@@ -105,6 +107,7 @@ class LEDStripController
     uint32_t _bsTimebase = 0;
     bool _showStrip = true;
     uint8_t _paletteHue = 0;
+    int _lastPos = 0;
 
 
     //General timing variables used in our Update() method
@@ -129,6 +132,7 @@ class LEDStripController
     void AddGlitter( fract8 chanceOfGlitter, uint8_t brightness = 255);
     void Confetti();
     void Sinelon();
+    void Sinepulse();
     void DDT_Experimental();
 
 

@@ -72,6 +72,9 @@ void LEDStripController::Update(uint32_t currentTime) { //keep this list sync'd 
       case SINELON:
         Sinelon();
         break;
+      case SINEPULSE:
+        Sinepulse();
+        break;
       case DDT_EXPERIMENTAL:
         DDT_Experimental();
         break;
@@ -141,10 +144,16 @@ void LEDStripController::InitializeAnimation() {
       //_paletteHue = 0;
       _updateInterval = CONFETTI_UPDATE_INTERVAL;
       break;
-    case SINELON:  
+    case SINELON:
       //_paletteHue = 0;
       _bsTimebase = millis();
       _updateInterval = SINELON_UPDATE_INTERVAL;
+      break;
+    case SINEPULSE:  
+      _paletteHue = 0;      
+      _bsTimebase = millis();     
+      _lastPos = -1;
+      _updateInterval = SINEPULSE_UPDATE_INTERVAL;
       break;
     case NONE:
       _updateInterval = DEFAULT_UPDATE_INTERVAL;
@@ -215,7 +224,7 @@ void LEDStripController::SetStripHSV(CRGB newCRGB) {
 
 // quickly turn off the strip
 void LEDStripController::AllOff() {
-  fadeToBlackBy( _leds, _stripLength, 80);
+  fadeToBlackBy( _leds, _stripLength, 20);
 }
 
 void LEDStripController::SolidColor(){
@@ -413,12 +422,59 @@ void LEDStripController::Sinelon(){
   // then shift it by 1/4 wavelength using sizeof(int) / 4
   int pos = beatsin16( _bpm / 2, 0, _stripLength - 1 , _bsTimebase, 65536 / 4);  
   
+  if(_invertStrip){
+    pos = (_stripLength-1) - pos;
+  }
+
   // add the palette color to the led at pos
   _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue, _brightness);
 
   //_leds[pos] += CHSV( _paletteHue, SATURATION_FULL, _brightness);
 
 }
+
+
+
+// a colored dot sweeping from top to bottom
+void LEDStripController::Sinepulse(){
+
+  // fade the entire strip by 20. This is what causes the animation to have a tail
+  fadeToBlackBy( _leds, _stripLength, 20); // MAGIC NUMBER ALERT!!!
+
+  // increment the _paletteHue position so the color moves through the palette
+  _paletteHue++;
+
+  // divide the BPM by 2 so that half the saw wave will finish at the actual BPM
+  // set the low value to 0 and high to one less than strip length
+  // set timebase reference to now so that the wave reference always starts at 0
+  // then shift it by 1/4 wavelength using sizeof(int) / 4
+  int pos = beatsin16( _bpm / 2, 0, _stripLength - 1, _bsTimebase, 65536 / 4);
+
+  if( (_lastPos == -1) && (pos == 0) ){
+    // if we just triggered the animation (_lastPos == -1) and pos is greater than 0 then we should wait until it is 0 before doing anything useful
+  }
+  else{
+
+    if((_lastPos != -1) && pos > _lastPos){
+      SetActiveAnimationType(ALL_OFF);      
+    }
+    else{
+
+       _lastPos = pos;
+      
+      if(_invertStrip){
+        pos = (_stripLength-1) - pos;
+      }
+    
+      // add the palette color to the led at pos
+      _leds[pos] += ColorFromPalette( _colorPalette, _paletteHue, _brightness);    
+    }
+  }
+
+  //_leds[pos] += CHSV( _paletteHue, SATURATION_FULL, _brightness);
+}
+
+
 
 
 // experiments with Waves animation (similar to Sinelon)
