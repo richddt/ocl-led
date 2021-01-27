@@ -305,7 +305,7 @@ void loop() {
       }
       case 't':
       {
-        setAllStripParams(0, 255, aBPM*3, 255, 20);  // aBPM is speed of Sinelon animation
+        setAllStripParams(0, 255, aBPM*2, 255, 20);  // aBPM is speed of Sinelon animation
 
         triggerAnimationTopTriangleStrips(SINEPULSE);
         

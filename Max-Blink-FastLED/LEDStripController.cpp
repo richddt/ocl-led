@@ -422,7 +422,7 @@ void LEDStripController::Sinelon(){
   // then shift it by 1/4 wavelength using sizeof(int) / 4
   int pos = beatsin16( _bpm / 2, 0, _stripLength - 1 , _bsTimebase, 65536 / 4);  
   
-  if(_invertStrip){
+  if(!_invertStrip){
     pos = (_stripLength-1) - pos;
   }
 
@@ -462,7 +462,7 @@ void LEDStripController::Sinepulse(){
 
        _lastPos = pos;
       
-      if(_invertStrip){
+      if(!_invertStrip){
         pos = (_stripLength-1) - pos;
       }
     
